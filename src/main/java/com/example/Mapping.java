@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Types;
 import java.util.*;
 
 
@@ -21,6 +22,8 @@ import org.springframework.web.bind.annotation.*;
 import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
+
+import static java.sql.JDBCType.NULL;
 
 @Controller
 public class Mapping {
@@ -49,36 +52,56 @@ public class Mapping {
     }
 
 
-    private void  removeSongDB(String name) {
+    private void  removeSongDB(String ID) {
 
-        String sql = "DELETE FROM thorsten_music.song WHERE name = ?;";
-                jdbcTemplate.update(sql, name);
+
+        String sql = "DELETE FROM thorsten_music.song WHERE songID = ?;";
+                jdbcTemplate.update(sql, Integer.parseInt(ID));
 
     }
-    private void InsertSongDB(String name, String artist, String category, int year) {
+    private void InsertSongDB(String name, String artist, String category, String year) {
+        java.lang.Object[] args;
+        if(!year.isEmpty()) {
+            int intYear = Integer.parseInt(year);
+            args = new java.lang.Object[]{name, artist, category, intYear};
+        }else {
+            args = new java.lang.Object[]{name, artist, category, 0};
+        }
 
-        java.lang.Object[] args = {name, artist, category, year};
+
         String sql = "INSERT INTO thorsten_music.song (`name`, `artist`, `category`, `year`) VALUES (?, ?, ?, ?);";
         jdbcTemplate.update(sql, args);
     }
-    private void UpdateSongDB(String name, String artist, String category, int year, int ID) {
+    private void UpdateSongDB(String name, String artist, String category, String year, int ID) {
 
-        java.lang.Object[] args = {name, artist, category, year, ID};
+        java.lang.Object[] args;
+        if(!year.isEmpty()) {
+            int intYear = Integer.parseInt(year);
+            args = new java.lang.Object[]{name, artist, category, intYear, ID};
+        }else {
+            args = new java.lang.Object[]{name, artist, category, 0, ID};
+        }
         String sql = "UPDATE thorsten_music.song\n" +
                 "SET name = ?, artist = ?, category = ?, year = ?\n" +
                 "WHERE songID = ?;";
         jdbcTemplate.update(sql, args);
     }
 
-    @GetMapping("/index")
+    @GetMapping("/admin")
     public String loginaHandler(Model model) {
         //System.out.println(getDBTest());
         model.addAttribute("DBresponse", selectAllSongDB());
 
-        return "index";
+        return "admin";
+    }
+    @GetMapping("/user")
+    public String userHandler(Model model) {
+        model.addAttribute("DBresponse", selectAllSongDB());
+
+        return "user";
     }
     @PostMapping("/updateDB")
-    public @ResponseBody String updateDB(@RequestBody String song) {
+    public @ResponseBody List<Map<String, Object>> updateDB(@RequestBody String song) {
 
 
         List<Map<String, Object>> HTTPlist = stringToMapList(song);
@@ -86,7 +109,7 @@ public class Mapping {
 
         compateTables(HTTPlist, DBlist);
 
-        return "400";
+        return selectAllSongDB();
     }
     @PostMapping("/selectFromCategory")
     public @ResponseBody List<Map<String, Object>> selectFromCategory(@RequestBody String value) {
@@ -110,33 +133,45 @@ private void compateTables(List<Map<String, Object>> HTTPlist, List<Map<String, 
         String name = rowMap.get("name").toString();
         String artist = rowMap.get("artist").toString();
         String category = rowMap.get("category").toString();
-        int year = Integer.parseInt(rowMap.get("year").toString());
+        String year = rowMap.get("year").toString();
 
+        System.out.println(rowMap);
+        System.out.println("" + rowMap.get("name").toString().isEmpty());
+        System.out.println("" + rowMap.get("artist").toString().isEmpty());
+        System.out.println("" + rowMap.get("category").toString().isEmpty());
 
         int index = getIndex(ID, DBlist);
         if(index == 400) {
             System.out.println("insert row in db");
+
             InsertSongDB(name, artist, category, year);
         } else {
 
-
         Map<String, Object> DBrowMap = DBlist.get(index);
-
         if(
                         DBrowMap.get("name").equals(rowMap.get("name")) &&
                         DBrowMap.get("artist").equals(rowMap.get("artist")) &&
                         DBrowMap.get("category").equals(rowMap.get("category")) &&
-                        DBrowMap.get("year").toString().equals(rowMap.get("year").toString())
+                        DBrowMap.get("year").toString().equals(rowMap.get("year"))
         ) {
             System.out.println("No changes made");
 
-        }else {
+        }else if(rowMap.get("name").toString().isEmpty() &&
+                rowMap.get("artist").toString().isEmpty() &&
+                rowMap.get("category").toString().isEmpty()) {
+            removeSongDB(ID);
+
+        }
+
+
+        else {
             System.out.println("update db where id = " + ID);
             UpdateSongDB(name, artist, category, year, Integer.parseInt(ID));
 
         }
         }
     }
+    System.out.println("NEW ROW");
 }
 private int getIndex(String ID, List<Map<String, Object>> DBlist) {
     for(int j = 0; j < DBlist.size(); j++) {

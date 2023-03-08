@@ -1,13 +1,19 @@
 body {
-  display: flex;
   font-family: -apple-system;
   font-size: 90%;
   color: #333;
-  justify-content: center;
 }
 
+#topDiv{
+
+}
+
+div{
+display:block;
+}
 #tableDiv {
-  max-width: 700px;
+  max-width: 80%;
+  max-height:80%;
   overflow: scroll;
 }
 table {
@@ -21,7 +27,7 @@ td, th {
   white-space: nowrap;
   border: 1px solid #ddd;
   padding: 20px;
-  width: 100px;
+  width: 200px;
   overflow: hidden;
 }
 th {
@@ -34,6 +40,6 @@ th {
 
 }
 #categorySelect{
-width:300px;
-height:200px;
+width:100px;
+height:50px;
 }

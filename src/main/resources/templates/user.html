@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<link th:href="@{/stylesheet.css?version=68}" rel="stylesheet"/>
+<script type="text/javascript" th:src="@{/script.js?Num=27}"></script>
+<head>
+    <meta charset="UTF-8">
+    <title>Main Page</title>
+</head>
+<body>
+<div id="topDiv">
+    <div><button id="saveToDbButton">Spara till Databas</button></div>
+
+    <select name="categorySelect" id="categorySelect" >
+        <option value="alla">alla</option>
+        <option value="hiphop">hiphop</option>
+        <option value="rock">rock</option>
+        <option value="blues">blues</option>
+        <option value="svensk">svensk</option>
+    </select>
+</div>
+
+
+
+<div id="tableDiv"></div>
+
+
+
+
+<script th:inline="javascript">
+      var dbResponse = /*[[${DBresponse}]]*/;
+      document.onload = init(dbResponse, 'user');
+
+</script>
+</body>
+</html>

@@ -1,41 +1,45 @@
 var tableDiv;
 var DBresponse;
-var table;
+var adminTable;
+var userTable;
 
-function init(DBresponseTemp) {
+function init(DBresponseTemp, user) {
 DBresponse = DBresponseTemp;
 tableDiv = document.getElementById("tableDiv");
 
-generateBlankTable();
-
+if(user == 'user' ) {
+    generateBlankUserTable();
+}else {
+    generateBlankAdminTable();
+}
 
 
     document.getElementById("saveToDbButton").addEventListener("click", function(){
-        getAllSongsDB();
+        updateDB();
     });
 
+/*
     document.getElementById("categorySelect").addEventListener("change", function(e){
         fillTableFromCategory(e.target.value);
-    });
+    }); */
 
 
 
 }
 
-//simple media list with table view
-function generateBlankTable() {
-    table = document.createElement('table');
-    table.id = 'mediaTable';
-    tableDiv.appendChild(table);
+function generateBlankAdminTable() {
+    adminTable = document.createElement('table');
+    adminTable.id = 'adminTable';
+    tableDiv.appendChild(adminTable);
 
-    var row = table.insertRow(0);
+    var row = adminTable.insertRow(0);
     for(var i = 0; i < 15; i++) {
         var th = document.createElement('th');
         row.appendChild(th);
     }
 
     for(var i = 0; i < 15; i++) {
-         var row = table.insertRow(table.length);
+         var row = adminTable.insertRow(adminTable.length);
          var hiddenID = document.createElement('td');
          hiddenID.classList.add('hiddenID');
          row.appendChild(hiddenID);
@@ -44,39 +48,94 @@ function generateBlankTable() {
           for(var j = 0; j < 15; j++) {
                  var cell = row.insertCell(j);
                  cell.contentEditable = true;
+
+                 cell.addEventListener("blur", function(e){
+                     updateDB();
+                 });
              }
 
     }
 
-table.rows[0].getElementsByTagName("th")[0].innerHTML = "Namn";
-table.rows[0].getElementsByTagName("th")[1].innerHTML = "Artist";
-table.rows[0].getElementsByTagName("th")[2].innerHTML = "Kategori";
-table.rows[0].getElementsByTagName("th")[3].innerHTML = "År";
+adminTable.rows[0].getElementsByTagName("th")[0].innerHTML = "Namn";
+adminTable.rows[0].getElementsByTagName("th")[1].innerHTML = "Artist";
+adminTable.rows[0].getElementsByTagName("th")[2].innerHTML = "Kategori";
+adminTable.rows[0].getElementsByTagName("th")[3].innerHTML = "År";
 
 for(let i = 0; i < 4; i++) {
-table.rows[0].getElementsByTagName("th")[i].addEventListener("click", function(){
-            sortTable(i);
+adminTable.rows[0].getElementsByTagName("th")[i].addEventListener("click", function(){
+            sortTable(i, adminTable);
         });
 }
 
-fillTable(DBresponse);
+fillTable(DBresponse, adminTable);
 
 }
-function fillTable(tableData) {
-    clearTable();
+function generateBlankUserTable() {
+    userTable = document.createElement('table');
+    userTable.id = 'userTable';
+    tableDiv.appendChild(userTable);
 
-      //loops throught mediaList, shows media if it matches the 'type' and 'haveTried' attributes
-        for(var row = 0; row < tableData.length; row++) {
+    var row = userTable.insertRow(0);
+    for(var i = 0; i < 15; i++) {
+        var th = document.createElement('th');
+        row.appendChild(th);
+    }
 
-                table.rows[row+1].getElementsByTagName("td")[0].innerHTML = tableData[row].name;
+    for(var i = 0; i < 15; i++) {
+         var row = userTable.insertRow(userTable.length);
+         var hiddenID = document.createElement('td');
+         hiddenID.classList.add('hiddenID');
+         row.appendChild(hiddenID);
 
-                table.rows[row+1].getElementsByTagName("td")[1].innerHTML = tableData[row].artist;
 
-                table.rows[row+1].getElementsByTagName("td")[2].innerHTML = tableData[row].category;
+          for(var j = 0; j < 15; j++) {
 
-                table.rows[row+1].getElementsByTagName("td")[3].innerHTML = tableData[row].year;
+                 var cell = row.insertCell(j);
 
-                table.rows[row+1].getElementsByClassName("hiddenID")[0].innerHTML = tableData[row].songID;
+                 cell.addEventListener("blur", function(e){
+
+                     });
+
+                 if(j == 4) {
+                    cell.contentEditable = true;
+                 }
+             }
+
+    }
+
+userTable.rows[0].getElementsByTagName("th")[0].innerHTML = "Namn";
+userTable.rows[0].getElementsByTagName("th")[1].innerHTML = "Artist";
+userTable.rows[0].getElementsByTagName("th")[2].innerHTML = "Kategori";
+userTable.rows[0].getElementsByTagName("th")[3].innerHTML = "År";
+userTable.rows[0].getElementsByTagName("th")[4].innerHTML = "Poäng";
+
+for(let i = 0; i < 5; i++) {
+userTable.rows[0].getElementsByTagName("th")[i].addEventListener("click", function(){
+            sortTable(i, userTable);
+        });
+}
+
+fillTable(DBresponse, userTable);
+
+}
+
+function fillTable(tableData, targetTable) {
+    clearTable(targetTable);
+
+        for(var row = 1; row < tableData.length; row++) {
+
+
+                console.log(targetTable.rows[row]);
+                console.log(tableData[row].name)
+                targetTable.rows[row].getElementsByTagName("td")[0].innerHTML = tableData[row].name;
+
+                targetTable.rows[row].getElementsByTagName("td")[1].innerHTML = tableData[row].artist;
+
+                targetTable.rows[row].getElementsByTagName("td")[2].innerHTML = tableData[row].category;
+
+                targetTable.rows[row].getElementsByTagName("td")[3].innerHTML = tableData[row].year;
+
+                targetTable.rows[row].getElementsByClassName("hiddenID")[0].innerHTML = tableData[row].songID;
         }
 }
 function fillTableFromCategory(value){
@@ -88,25 +147,25 @@ function fillTableFromCategory(value){
             if (this.readyState == 4 && this.status == 200) {
             var jsonResponse = JSON.parse(xhttp.responseText);
 
-              fillTable(jsonResponse);
+              fillTable(jsonResponse, adminTable);
             }
           };
           xhttp.open("POST", "selectFromCategory", true);
           xhttp.send(value);
 }
 
-function getAllSongsDB() {
+function updateDB() {
 
-    var rows = table.rows;
+    var rows = adminTable.rows;
     let httpText = "";
-    for(var i = 1; i < getAmountOfNonEmptyRows(table, 0); i++) {
+    for(var i = 1; i < getAmountOfNonEmptyRows(adminTable, 0); i++) {
 
 
-        var name = rows[i].getElementsByTagName("td")[0].innerHTML;
-        var artist = rows[i].getElementsByTagName("td")[1].innerHTML;
-        var category = rows[i].getElementsByTagName("td")[2].innerHTML;
-        var year = rows[i].getElementsByTagName("td")[3].innerHTML;
-        var songID = rows[i].getElementsByClassName("hiddenID")[0].innerHTML;
+        var name = sanitizeUserInput(rows[i].getElementsByTagName("td")[0].innerHTML);
+        var artist = sanitizeUserInput(rows[i].getElementsByTagName("td")[1].innerHTML);
+        var category = sanitizeUserInput(rows[i].getElementsByTagName("td")[2].innerHTML);
+        var year = sanitizeUserInput(rows[i].getElementsByTagName("td")[3].innerHTML);
+        var songID = sanitizeUserInput(rows[i].getElementsByClassName("hiddenID")[0].innerHTML);
 
         httpText += '{"name": "' + name +  '", "artist": "' + artist +  '", "category": "' + category +  '", "year": "' + year +  '", "songID": "' + songID +  '"}, ';
     }
@@ -117,16 +176,22 @@ function getAllSongsDB() {
 
       xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-        //console.log(this.responseText);
+         var jsonResponse = JSON.parse(xhttp.responseText);
+        fillTable(jsonResponse,adminTable)
+
         }
       };
       xhttp.open("POST", "updateDB", true);
       xhttp.send(httpText);
 }
+//stops the program from breaking when { or } is input
+function sanitizeUserInput(input) {
+
+    return input.replace('{', '§').replace('}', '§');
+}
 
 //sort an html table either alphabetically or numerically. n = index of clicked element. (stole this from the internet)
-function sortTable(n) {
-console.log(n + "hey");
+function sortTable(n,targetTable ) {
     var rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
     switching = true;
     // Set the sorting direction to ascending:
@@ -135,12 +200,12 @@ console.log(n + "hey");
     no switching has been done: */
 
     //only want to sort non empty rows
-    var nonEmptyRows = getAmountOfNonEmptyRows(table, n);
+    var nonEmptyRows = getAmountOfNonEmptyRows(targetTable, n);
 
     while (switching) {
       // Start by saying: no switching is done:
       switching = false;
-      rows = table.rows;
+      rows = targetTable.rows;
       /* Loop through all table rows (except the
       first, which contains table headers): */
 
@@ -186,25 +251,30 @@ console.log(n + "hey");
     }
   }
 
-function clearTable() {
+function clearTable(targetTable) {
 
-        for(var row = 1; row < table.rows.length; row++) {
-                table.rows[row].getElementsByTagName("td")[0].innerHTML = "";
+        for(var row = 1; row < targetTable.rows.length; row++) {
+                targetTable.rows[row].getElementsByTagName("td")[0].innerHTML = "";
 
-                table.rows[row].getElementsByTagName("td")[1].innerHTML = "";
+                targetTable.rows[row].getElementsByTagName("td")[1].innerHTML = "";
 
-                table.rows[row].getElementsByTagName("td")[2].innerHTML = "";
+                targetTable.rows[row].getElementsByTagName("td")[2].innerHTML = "";
 
-                table.rows[row].getElementsByTagName("td")[3].innerHTML = "";
+                targetTable.rows[row].getElementsByTagName("td")[3].innerHTML = "";
 
-                table.rows[row].getElementsByClassName("hiddenID")[0].innerHTML = "";
+                targetTable.rows[row].getElementsByClassName("hiddenID")[0].innerHTML = "";
         }
 }
 
 function getAmountOfNonEmptyRows(table_, n){
     var rows = table_.rows;
     for (i = 1; i < (rows.length - 1); i++) {
-        if(rows[i].getElementsByTagName("td")[n].innerHTML.trim() == ""){
+        if(rows[i].getElementsByTagName("td")[0].innerHTML.trim() == "" &&
+            rows[i].getElementsByTagName("td")[1].innerHTML.trim() == "" &&
+            rows[i].getElementsByTagName("td")[2].innerHTML.trim() == "" &&
+            rows[i].getElementsByTagName("td")[3].innerHTML.trim() == "" &&
+            rows[i].getElementsByClassName("hiddenID")[0].innerHTML.trim() == ""){
+            console.log(i);
             return i;
         }
     }
