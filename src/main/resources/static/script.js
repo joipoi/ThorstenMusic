@@ -3,6 +3,7 @@ var DBresponse;
 var adminTable;
 var userTable;
 
+
 function init(DBresponseTemp, user) {
 DBresponse = DBresponseTemp;
 tableDiv = document.getElementById("tableDiv");
@@ -125,8 +126,6 @@ function fillTable(tableData, targetTable) {
         for(var row = 1; row < tableData.length; row++) {
 
 
-                console.log(targetTable.rows[row]);
-                console.log(tableData[row].name)
                 targetTable.rows[row].getElementsByTagName("td")[0].innerHTML = tableData[row].name;
 
                 targetTable.rows[row].getElementsByTagName("td")[1].innerHTML = tableData[row].artist;
@@ -184,6 +183,31 @@ function updateDB() {
       xhttp.open("POST", "updateDB", true);
       xhttp.send(httpText);
 }
+
+function attemptLogin() {
+          var xhttp;
+          let data = "";
+          data += document.getElementById("usernameInput").value;
+          data += "§";
+          data += document.getElementById("passwordInput").value;
+
+          xhttp = new XMLHttpRequest();
+
+          xhttp.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 200) {
+            if (xhttp.responseText === "true") {
+             window.location.replace(
+               "/user"
+             );
+            }else if(xhttp.responseText === "false") {
+             alert("login failed");
+            }
+            }
+          };
+          xhttp.open("POST", "login", true);
+          xhttp.send(data);
+}
+
 //stops the program from breaking when { or } is input
 function sanitizeUserInput(input) {
 
@@ -274,7 +298,6 @@ function getAmountOfNonEmptyRows(table_, n){
             rows[i].getElementsByTagName("td")[2].innerHTML.trim() == "" &&
             rows[i].getElementsByTagName("td")[3].innerHTML.trim() == "" &&
             rows[i].getElementsByClassName("hiddenID")[0].innerHTML.trim() == ""){
-            console.log(i);
             return i;
         }
     }

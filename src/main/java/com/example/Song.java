@@ -1,11 +1,8 @@
 package com.example;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 
 public class Song {
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String name;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String artist;
     private String category;
     private int year;

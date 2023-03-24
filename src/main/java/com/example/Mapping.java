@@ -13,13 +13,11 @@ import java.util.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
-import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -86,6 +84,14 @@ public class Mapping {
                 "WHERE songID = ?;";
         jdbcTemplate.update(sql, args);
     }
+    private List<Map<String, Object>>  selectAllUsersDB() {
+
+        String sql = "SELECT * FROM thorsten_music.user;";
+        List<Map<String, Object>> list =  jdbcTemplate.queryForList(sql);
+
+        return list;
+    }
+
 
     @GetMapping("/admin")
     public String loginaHandler(Model model) {
@@ -100,11 +106,27 @@ public class Mapping {
 
         return "user";
     }
+    @GetMapping("/login")
+    public String loginHandler(Model model) {
+
+        return "login";
+    }
+
+
+    @PostMapping("/login")
+    public @ResponseBody Boolean attemptLogin(@RequestBody String userInfo) {
+        String username = userInfo.substring(0, userInfo.indexOf('§'));
+        String password = userInfo.substring(userInfo.indexOf('§')+1, userInfo.length());
+
+
+        return authLogin(username, password);
+    }
+
     @PostMapping("/updateDB")
-    public @ResponseBody List<Map<String, Object>> updateDB(@RequestBody String song) {
+    public @ResponseBody List<Map<String, Object>> updateDB(@RequestBody String stringTable) {
 
 
-        List<Map<String, Object>> HTTPlist = stringToMapList(song);
+        List<Map<String, Object>> HTTPlist = stringToMapList(stringTable);
         List<Map<String, Object>> DBlist = selectAllSongDB();
 
         compateTables(HTTPlist, DBlist);
@@ -114,7 +136,6 @@ public class Mapping {
     @PostMapping("/selectFromCategory")
     public @ResponseBody List<Map<String, Object>> selectFromCategory(@RequestBody String value) {
 
-        System.out.println(value);
         if(value.equals("alla")) {
             return selectAllSongDB();
         }
@@ -122,7 +143,22 @@ public class Mapping {
         return selectSongFromCategory(value);
     }
 
-private void compateTables(List<Map<String, Object>> HTTPlist, List<Map<String, Object>> DBlist) {
+    private boolean authLogin(String username, String password) {
+        List<Map<String, Object>> userList = selectAllUsersDB();
+
+        for(int i = 0; i < userList.size(); i++) {
+            Map<String, Object> row = userList.get(i);
+            if(username.equals(row.get("username"))) {
+                if(password.equals(row.get("password"))) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private void compateTables(List<Map<String, Object>> HTTPlist, List<Map<String, Object>> DBlist) {
 
     for(int i = 0; i < HTTPlist.size(); i++) {
 
@@ -173,7 +209,7 @@ private void compateTables(List<Map<String, Object>> HTTPlist, List<Map<String, 
     }
     System.out.println("NEW ROW");
 }
-private int getIndex(String ID, List<Map<String, Object>> DBlist) {
+    private int getIndex(String ID, List<Map<String, Object>> DBlist) {
     for(int j = 0; j < DBlist.size(); j++) {
         if(DBlist.get(j).get("songID").toString().equals(ID)) {
             return j;
@@ -182,7 +218,7 @@ private int getIndex(String ID, List<Map<String, Object>> DBlist) {
     }
     return 400;
 }
-private void printList(List<Map<String, Object>> list){
+    private void printList(List<Map<String, Object>> list){
     for (int i = 0; i < list.size(); i++) {
         for (Map.Entry<String, Object> entry : list.get(i).entrySet()) {
             System.out.print(entry.getKey() + ": " + entry.getValue().toString() + " ");
@@ -193,7 +229,7 @@ private void printList(List<Map<String, Object>> list){
 
 }
 
-private List<Map<String, Object>> stringToMapList(String HTTPstring) {
+    private List<Map<String, Object>> stringToMapList(String HTTPstring) {
 
         List<Map<String, Object>> list = new ArrayList<>();
 
@@ -221,7 +257,7 @@ private List<Map<String, Object>> stringToMapList(String HTTPstring) {
 }
 
 
-private JSONObject readJsonFile() throws Exception {
+   /* private JSONObject readJsonFile() throws Exception {
     File file = new File("src/main/resources/userFiles/users.json");
     String content = FileUtils.readFileToString(file, "utf-8");
 
@@ -232,7 +268,7 @@ private JSONObject readJsonFile() throws Exception {
 
 
 }
-private void jsonToFile() {
+    private void jsonToFile() {
     String path = "src/main/resources/userFiles/users.json";
 
     String fileNamePath = "src/main/resources/";
@@ -253,7 +289,7 @@ private void jsonToFile() {
         e.printStackTrace();
     }
 
-}
+} */
 
 
 

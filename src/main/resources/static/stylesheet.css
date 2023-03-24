@@ -4,16 +4,12 @@ body {
   color: #333;
 }
 
-#topDiv{
-
-}
-
 div{
 display:block;
 }
 #tableDiv {
+    height:900px;
   max-width: 80%;
-  max-height:80%;
   overflow: scroll;
 }
 table {
