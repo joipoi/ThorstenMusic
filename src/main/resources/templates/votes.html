@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
-<link th:href="@{/stylesheet.css?version=68}" rel="stylesheet"/>
+<link th:href="@{/stylesheet.css?version=67}" rel="stylesheet"/>
 <script type="text/javascript" th:src="@{/script.js?Num=44}"></script>
 <head>
     <meta charset="UTF-8">
@@ -8,8 +8,8 @@
 </head>
 <body>
 <div id="topDiv">
-
     <select name="yearSelect" id="yearSelect" >
+        <option value="year">alla</option>
         <option value="2018">2018</option>
         <option value="2019">2019</option>
         <option value="2020">2020</option>
@@ -17,19 +17,23 @@
         <option value="2022">2022</option>
     </select>
 
-    <div><button id="confirmVotesBtn">Bekräfta Röstning</button></div>
-</div>
+    <select name="userSelect" id="userSelect" >
+        <option value="userID">alla</option>
+        <option value="1">Joel</option>
+        <option value="2">Thorsten</option>
+        <option value="4">Samuel</option>
+    </select>
+    </div>
+    <div id="tableDiv">
+
+    </div>
 
 
 
-<div id="tableDiv"></div>
 
-
-
-
-<script th:inline="javascript">
-      var dbResponse = /*[[${DBresponse}]]*/;
-      document.onload = init(dbResponse, 'user');
+    <script th:inline="javascript">
+      var voteList = /*[[${voteList}]]*/;
+      document.onload = initVotePage(voteList);
 
 </script>
 </body>

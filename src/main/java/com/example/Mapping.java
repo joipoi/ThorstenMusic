@@ -37,11 +37,11 @@ public class Mapping {
 
         return list;
     }
-    private List<Map<String, Object>>  selectSongFromCategory(String category) {
+    private List<Map<String, Object>>  selectSongFromYear(String year) {
 
-        java.lang.Object[] args = {category};
+        java.lang.Object[] args = {year};
 
-        String sql = "SELECT * FROM thorsten_music.song WHERE category = ?;";
+        String sql = "SELECT * FROM thorsten_music.song WHERE year = ?;";
 
 
         List<Map<String, Object>> list =  jdbcTemplate.queryForList(sql, args);
@@ -92,6 +92,60 @@ public class Mapping {
         return list;
     }
 
+    private void InsertVotesDB(String songID, String userID, String rating ) {
+        java.lang.Object[] args = new java.lang.Object[]{songID, userID, rating};
+
+
+
+        String sql = "INSERT INTO thorsten_music.vote (`songID`, `userID`, `rating`) VALUES (?, ?, ?);";
+        jdbcTemplate.update(sql, args);
+    }
+
+    private List<Map<String, Object>>  selectVote(String userID, String year) {
+
+
+
+        ArrayList<java.lang.Object> argsList = new ArrayList<>();
+
+        String sql = "SELECT song.name, user.username, vote.rating\n" +
+                "FROM thorsten_music.song, thorsten_music.user, thorsten_music.vote\n" +
+                "WHERE 1 = 1";
+
+
+
+
+        //String sql = "SELECT * FROM thorsten_music.vote WHERE 1 = 1";
+
+
+        if(!userID.equals("userID")) {
+            sql += " AND user.userID = ?";
+            argsList.add(Integer.parseInt(userID));
+
+        }
+        if(!year.equals("year")) {
+            sql += " AND song.year = ?";
+            argsList.add(Integer.parseInt(year));
+        }
+        sql += ";";
+        System.out.println(sql);
+        java.lang.Object[] args = argsList.toArray();
+
+
+        List<Map<String, Object>> list =  jdbcTemplate.queryForList(sql, args);
+
+        return list;
+    }
+
+
+
+
+    @GetMapping("/")
+    public String index(Model model) {
+        //System.out.println(getDBTest());
+        model.addAttribute("DBresponse", selectAllSongDB());
+
+        return "admin";
+    }
 
     @GetMapping("/admin")
     public String loginaHandler(Model model) {
@@ -111,10 +165,30 @@ public class Mapping {
 
         return "login";
     }
+    @GetMapping("/votes")
+    public String voteHandler(Model model) {
+        //model.addAttribute("DBresponse", );
+
+        return "votes";
+    }
+
+    @PostMapping("/getVotes")
+    public @ResponseBody List<Map<String, Object>> getVotes(@RequestBody String data) {
+
+        String userID = data.split(",")[0];
+        String year = data.split(",")[1];
+        System.out.println(userID);
+        System.out.println(year);
+        List<Map<String, Object>> voteList = selectVote(userID, year);
+
+
+        return voteList;
+    }
+
 
 
     @PostMapping("/login")
-    public @ResponseBody Boolean attemptLogin(@RequestBody String userInfo) {
+    public @ResponseBody int attemptLogin(@RequestBody String userInfo) {
         String username = userInfo.substring(0, userInfo.indexOf('§'));
         String password = userInfo.substring(userInfo.indexOf('§')+1, userInfo.length());
 
@@ -133,29 +207,50 @@ public class Mapping {
 
         return selectAllSongDB();
     }
-    @PostMapping("/selectFromCategory")
-    public @ResponseBody List<Map<String, Object>> selectFromCategory(@RequestBody String value) {
+    @PostMapping("/confirmVotes")
+    public @ResponseBody String confirmVotes(@RequestBody String points) {
+        System.out.println(points);
+        List<Map<String, Object>> pointList = stringToMapList(points);
 
-        if(value.equals("alla")) {
-            return selectAllSongDB();
+        for(int i = 0; i < pointList.size(); i++) {
+            System.out.println(pointList.get(i).get("songID").toString());
+
+            String songID = pointList.get(i).get("songID").toString();
+            String userID = pointList.get(i).get("userID").toString();
+            String rating = pointList.get(i).get("rating").toString();
+
+            if(rating.isEmpty()) {
+                rating = "-1";
+            }
+
+
+
+            InsertVotesDB(songID,userID , rating);
         }
+        System.out.println(pointList);
 
-        return selectSongFromCategory(value);
+        return "aaahh";
     }
 
-    private boolean authLogin(String username, String password) {
+    @PostMapping("/selectFromYear")
+    public @ResponseBody List<Map<String, Object>> selectFromCategory(@RequestBody String value) {
+
+        return selectSongFromYear(value);
+    }
+
+    private int authLogin(String username, String password) {
         List<Map<String, Object>> userList = selectAllUsersDB();
 
         for(int i = 0; i < userList.size(); i++) {
             Map<String, Object> row = userList.get(i);
             if(username.equals(row.get("username"))) {
                 if(password.equals(row.get("password"))) {
-                    return true;
+                    return Integer.parseInt(row.get("userID").toString());
                 }
             }
         }
 
-        return false;
+        return -1;
     }
 
     private void compateTables(List<Map<String, Object>> HTTPlist, List<Map<String, Object>> DBlist) {

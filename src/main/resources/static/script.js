@@ -2,31 +2,32 @@ var tableDiv;
 var DBresponse;
 var adminTable;
 var userTable;
+var isAdmin;
 
 
-function init(DBresponseTemp, user) {
+function init(DBresponseTemp, user) { //fix this pls
 DBresponse = DBresponseTemp;
 tableDiv = document.getElementById("tableDiv");
 
 if(user == 'user' ) {
+isAdmin = false;
     generateBlankUserTable();
+     document.getElementById("confirmVotesBtn").addEventListener("click", function(){
+                confirmVotes();
+            });
 }else {
+isAdmin = true;
     generateBlankAdminTable();
-}
-
-
-    document.getElementById("saveToDbButton").addEventListener("click", function(){
-        updateDB();
-    });
-
-/*
-    document.getElementById("categorySelect").addEventListener("change", function(e){
-        fillTableFromCategory(e.target.value);
-    }); */
-
 
 
 }
+ document.getElementById("yearSelect").addEventListener("change", function(e){
+            fillTableFromYear(e.target.value);
+        });
+
+
+}
+
 
 function generateBlankAdminTable() {
     adminTable = document.createElement('table');
@@ -57,10 +58,9 @@ function generateBlankAdminTable() {
 
     }
 
-adminTable.rows[0].getElementsByTagName("th")[0].innerHTML = "Namn";
+adminTable.rows[0].getElementsByTagName("th")[0].innerHTML = "Låt";
 adminTable.rows[0].getElementsByTagName("th")[1].innerHTML = "Artist";
 adminTable.rows[0].getElementsByTagName("th")[2].innerHTML = "Kategori";
-adminTable.rows[0].getElementsByTagName("th")[3].innerHTML = "År";
 
 for(let i = 0; i < 4; i++) {
 adminTable.rows[0].getElementsByTagName("th")[i].addEventListener("click", function(){
@@ -77,19 +77,19 @@ function generateBlankUserTable() {
     tableDiv.appendChild(userTable);
 
     var row = userTable.insertRow(0);
-    for(var i = 0; i < 15; i++) {
+    for(var i = 0; i < 10; i++) {
         var th = document.createElement('th');
         row.appendChild(th);
     }
 
-    for(var i = 0; i < 15; i++) {
+    for(var i = 0; i < 30; i++) {
          var row = userTable.insertRow(userTable.length);
          var hiddenID = document.createElement('td');
          hiddenID.classList.add('hiddenID');
          row.appendChild(hiddenID);
 
 
-          for(var j = 0; j < 15; j++) {
+          for(var j = 0; j < 10; j++) {
 
                  var cell = row.insertCell(j);
 
@@ -97,26 +97,25 @@ function generateBlankUserTable() {
 
                      });
 
-                 if(j == 4) {
+                 if(j == 3) {
                     cell.contentEditable = true;
                  }
              }
 
     }
 
-userTable.rows[0].getElementsByTagName("th")[0].innerHTML = "Namn";
-userTable.rows[0].getElementsByTagName("th")[1].innerHTML = "Artist";
-userTable.rows[0].getElementsByTagName("th")[2].innerHTML = "Kategori";
-userTable.rows[0].getElementsByTagName("th")[3].innerHTML = "År";
-userTable.rows[0].getElementsByTagName("th")[4].innerHTML = "Poäng";
+    userTable.rows[0].getElementsByTagName("th")[0].innerHTML = "Låt";
+    userTable.rows[0].getElementsByTagName("th")[1].innerHTML = "Artist";
+    userTable.rows[0].getElementsByTagName("th")[2].innerHTML = "Kategori";
+    userTable.rows[0].getElementsByTagName("th")[3].innerHTML = "Poäng";
 
-for(let i = 0; i < 5; i++) {
-userTable.rows[0].getElementsByTagName("th")[i].addEventListener("click", function(){
+    for(let i = 0; i < 5; i++) {
+        userTable.rows[0].getElementsByTagName("th")[i].addEventListener("click", function(){
             sortTable(i, userTable);
         });
-}
+    }
 
-fillTable(DBresponse, userTable);
+    fillTable(DBresponse, userTable);
 
 }
 
@@ -127,17 +126,17 @@ function fillTable(tableData, targetTable) {
 
 
                 targetTable.rows[row].getElementsByTagName("td")[0].innerHTML = tableData[row].name;
+                console.log(tableData[row].name + " : " + tableData[row].year );
 
                 targetTable.rows[row].getElementsByTagName("td")[1].innerHTML = tableData[row].artist;
 
                 targetTable.rows[row].getElementsByTagName("td")[2].innerHTML = tableData[row].category;
 
-                targetTable.rows[row].getElementsByTagName("td")[3].innerHTML = tableData[row].year;
-
                 targetTable.rows[row].getElementsByClassName("hiddenID")[0].innerHTML = tableData[row].songID;
+
         }
 }
-function fillTableFromCategory(value){
+function fillTableFromYear(value){
           var xhttp;
 
           xhttp = new XMLHttpRequest();
@@ -146,12 +145,86 @@ function fillTableFromCategory(value){
             if (this.readyState == 4 && this.status == 200) {
             var jsonResponse = JSON.parse(xhttp.responseText);
 
-              fillTable(jsonResponse, adminTable);
+                if(isAdmin) {
+                    fillTable(jsonResponse, adminTable);
+                } else {
+                    fillTable(jsonResponse, userTable);
+                }
+
             }
           };
-          xhttp.open("POST", "selectFromCategory", true);
+          xhttp.open("POST", "selectFromYear", true);
           xhttp.send(value);
 }
+
+function initVotePage() {
+
+
+
+ document.getElementById("yearSelect").addEventListener("change", function(e){
+                getVoteList(document.getElementById("userSelect").value, e.target.value);
+            });
+ document.getElementById("userSelect").addEventListener("change", function(e){
+                 getVoteList(e.target.value, document.getElementById("yearSelect").value);
+             });
+
+ getVoteList("userID", "year");
+
+
+}
+
+function getVoteList(user, year) {
+       var xhttp;
+       var data = user + "," + year;
+
+              xhttp = new XMLHttpRequest();
+
+              xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                var jsonResponse = JSON.parse(xhttp.responseText);
+                fillVoteTable(jsonResponse);
+
+                   console.log(jsonResponse);
+
+                }
+              };
+              xhttp.open("POST", "getVotes", true);
+              xhttp.send(data);
+}
+function fillVoteTable(data) {
+var tableDiv = document.getElementById("tableDiv");
+   tableDiv.innerHTML = "";
+     var table = document.createElement('table');
+     table.id = 'mediaTable';
+     tableDiv.appendChild(table);
+
+     var tr = document.createElement('tr');
+      //the first tableRow has the headers which include an onclick event which sorts the columns
+     tr.innerHTML = '   <th onclick="sortTable(0)">Låt</th> <th onclick="sortTable(1)">Anändare</th>  <th onclick="sortTable(2)">Röstning</th>';
+     table.appendChild(tr);
+
+     for(var row = 0; row < data.length; row++) {
+                 var tr = document.createElement('tr');
+
+                 var song = document.createElement('td');
+                 song.innerHTML = data[row].name;
+                 tr.appendChild(song);
+
+                 var user = document.createElement('td');
+                 user.innerHTML = data[row].username;
+                 tr.appendChild(user);
+
+                 var vote = document.createElement('td');
+                 vote.innerHTML = data[row].rating;
+                 tr.appendChild(vote);
+
+                 table.appendChild(tr)
+         }
+
+
+}
+
+
 
 function updateDB() {
 
@@ -184,6 +257,52 @@ function updateDB() {
       xhttp.send(httpText);
 }
 
+function confirmVotes() {
+    var rows = userTable.rows;
+    var xhttp;
+    let data = "";
+
+     for(var i = 1; i < getAmountOfNonEmptyRows(userTable, 0); i++) { //getamount bad
+
+
+            var rating = sanitizeUserInput(rows[i].getElementsByTagName("td")[3].innerHTML);
+            var songID = sanitizeUserInput(rows[i].getElementsByClassName("hiddenID")[0].innerHTML);
+            var userID = getCookie("userID");
+
+            data += '{"rating": "' + rating +  '", "songID": "' + songID +  '", "userID": "' + userID +  '"}, ';
+
+        }
+
+
+
+
+
+    xhttp = new XMLHttpRequest();
+
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+
+        }
+    };
+    xhttp.open("POST", "confirmVotes", true);
+    xhttp.send(data);
+}
+function getCookie(cname) {
+  let name = cname + "=";
+  let decodedCookie = decodeURIComponent(document.cookie);
+  let ca = decodedCookie.split(';');
+  for(let i = 0; i <ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+
 function attemptLogin() {
           var xhttp;
           let data = "";
@@ -195,11 +314,12 @@ function attemptLogin() {
 
           xhttp.onreadystatechange = function() {
           if (this.readyState == 4 && this.status == 200) {
-            if (xhttp.responseText === "true") {
+            if (xhttp.responseText != -1) {
+            document.cookie = "userID=" + xhttp.responseText;
              window.location.replace(
                "/user"
              );
-            }else if(xhttp.responseText === "false") {
+            }else if(xhttp.responseText == -1) {
              alert("login failed");
             }
             }
