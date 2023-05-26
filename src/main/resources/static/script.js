@@ -35,7 +35,7 @@ function generateBlankAdminTable() {
     tableDiv.appendChild(adminTable);
 
     var row = adminTable.insertRow(0);
-    for(var i = 0; i < 15; i++) {
+    for(var i = 0; i < 3; i++) {
         var th = document.createElement('th');
         row.appendChild(th);
     }
@@ -47,28 +47,37 @@ function generateBlankAdminTable() {
          row.appendChild(hiddenID);
 
 
-          for(var j = 0; j < 15; j++) {
+          for(var j = 0; j < 3; j++) {
                  var cell = row.insertCell(j);
                  cell.contentEditable = true;
 
-                 cell.addEventListener("blur", function(e){
+               /*  cell.addEventListener("blur", function(e){
                      updateDB();
-                 });
-             }
+                 }); */
+          }
+          var updateBtn = document.createElement('button');
+          updateBtn.innerHTML = '<img src="update.png"  width="100" height="50"> '
+            updateBtn.addEventListener("click", function(e){
+                               updateDB();
+                               console.log("updated");
+                           });
+        //  updateCell.src = "update.png";
+         // updateCell.id = "updateImg";
+          row.appendChild(updateBtn);
 
     }
 
-adminTable.rows[0].getElementsByTagName("th")[0].innerHTML = "Låt";
-adminTable.rows[0].getElementsByTagName("th")[1].innerHTML = "Artist";
-adminTable.rows[0].getElementsByTagName("th")[2].innerHTML = "Kategori";
+    adminTable.rows[0].getElementsByTagName("th")[0].innerHTML = "Låt";
+    adminTable.rows[0].getElementsByTagName("th")[1].innerHTML = "Artist";
+    adminTable.rows[0].getElementsByTagName("th")[2].innerHTML = "Kategori";
 
-for(let i = 0; i < 4; i++) {
-adminTable.rows[0].getElementsByTagName("th")[i].addEventListener("click", function(){
+    for(let i = 0; i < 3; i++) {
+        adminTable.rows[0].getElementsByTagName("th")[i].addEventListener("click", function(){
             sortTable(i, adminTable);
         });
-}
+    }
 
-fillTable(DBresponse, adminTable);
+    fillTableFromYear(document.getElementById("yearSelect").value);
 
 }
 function generateBlankUserTable() {
@@ -236,7 +245,7 @@ function updateDB() {
         var name = sanitizeUserInput(rows[i].getElementsByTagName("td")[0].innerHTML);
         var artist = sanitizeUserInput(rows[i].getElementsByTagName("td")[1].innerHTML);
         var category = sanitizeUserInput(rows[i].getElementsByTagName("td")[2].innerHTML);
-        var year = sanitizeUserInput(rows[i].getElementsByTagName("td")[3].innerHTML);
+        var year = document.getElementById("yearSelect").value;
         var songID = sanitizeUserInput(rows[i].getElementsByClassName("hiddenID")[0].innerHTML);
 
         httpText += '{"name": "' + name +  '", "artist": "' + artist +  '", "category": "' + category +  '", "year": "' + year +  '", "songID": "' + songID +  '"}, ';
@@ -250,6 +259,7 @@ function updateDB() {
         if (this.readyState == 4 && this.status == 200) {
          var jsonResponse = JSON.parse(xhttp.responseText);
         fillTable(jsonResponse,adminTable)
+        console.log(jsonResponse);
 
         }
       };
