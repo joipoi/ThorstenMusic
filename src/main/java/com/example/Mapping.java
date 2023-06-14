@@ -3,6 +3,7 @@ package com.example;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -11,6 +12,7 @@ import java.util.*;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -127,7 +130,6 @@ public class Mapping {
             argsList.add(Integer.parseInt(year));
         }
         sql += ";";
-        System.out.println(sql);
         java.lang.Object[] args = argsList.toArray();
 
 
@@ -141,7 +143,6 @@ public class Mapping {
 
     @GetMapping("/")
     public String index(Model model) {
-        //System.out.println(getDBTest());
         model.addAttribute("DBresponse", selectAllSongDB());
 
         return "admin";
@@ -149,7 +150,6 @@ public class Mapping {
 
     @GetMapping("/admin")
     public String loginaHandler(Model model) {
-        //System.out.println(getDBTest());
         model.addAttribute("DBresponse", selectAllSongDB());
 
         return "admin";
@@ -162,6 +162,7 @@ public class Mapping {
     }
     @GetMapping("/login")
     public String loginHandler(Model model) {
+
 
         return "login";
     }
@@ -177,8 +178,6 @@ public class Mapping {
 
         String userID = data.split(",")[0];
         String year = data.split(",")[1];
-        System.out.println(userID);
-        System.out.println(year);
         List<Map<String, Object>> voteList = selectVote(userID, year);
 
 
@@ -186,12 +185,13 @@ public class Mapping {
     }
 
 
-
     @PostMapping("/login")
-    public @ResponseBody int attemptLogin(@RequestBody String userInfo) {
-        String username = userInfo.substring(0, userInfo.indexOf('§'));
-        String password = userInfo.substring(userInfo.indexOf('§')+1, userInfo.length());
+    public @ResponseBody int attemptLogin(@RequestBody String userInfo) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, String> userData = mapper.readValue(userInfo, new TypeReference<Map<String, String>>(){});
 
+        String username = userData.get("username");
+        String password = userData.get("password");
 
         return authLogin(username, password);
     }
@@ -209,11 +209,9 @@ public class Mapping {
     }
     @PostMapping("/confirmVotes")
     public @ResponseBody String confirmVotes(@RequestBody String points) {
-        System.out.println(points);
         List<Map<String, Object>> pointList = stringToMapList(points);
 
         for(int i = 0; i < pointList.size(); i++) {
-            System.out.println(pointList.get(i).get("songID").toString());
 
             String songID = pointList.get(i).get("songID").toString();
             String userID = pointList.get(i).get("userID").toString();
@@ -227,7 +225,6 @@ public class Mapping {
 
             InsertVotesDB(songID,userID , rating);
         }
-        System.out.println(pointList);
 
         return "aaahh";
     }
@@ -250,6 +247,7 @@ public class Mapping {
             }
         }
 
+        System.out.println("Failed to authenticate user: " + username);
         return -1;
     }
 
@@ -265,11 +263,6 @@ public class Mapping {
         String artist = rowMap.get("artist").toString();
         String category = rowMap.get("category").toString();
         String year = rowMap.get("year").toString();
-
-        System.out.println(rowMap);
-        System.out.println("" + rowMap.get("name").toString().isEmpty());
-        System.out.println("" + rowMap.get("artist").toString().isEmpty());
-        System.out.println("" + rowMap.get("category").toString().isEmpty());
 
         int index = getIndex(ID, DBlist);
         if(index == 400) {

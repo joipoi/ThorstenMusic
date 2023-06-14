@@ -135,7 +135,6 @@ function fillTable(tableData, targetTable) {
 
 
                 targetTable.rows[row].getElementsByTagName("td")[0].innerHTML = tableData[row].name;
-                console.log(tableData[row].name + " : " + tableData[row].year );
 
                 targetTable.rows[row].getElementsByTagName("td")[1].innerHTML = tableData[row].artist;
 
@@ -145,30 +144,9 @@ function fillTable(tableData, targetTable) {
 
         }
 }
-function fillTableFromYear(value){
-          var xhttp;
 
-          xhttp = new XMLHttpRequest();
-
-          xhttp.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-            var jsonResponse = JSON.parse(xhttp.responseText);
-
-                if(isAdmin) {
-                    fillTable(jsonResponse, adminTable);
-                } else {
-                    fillTable(jsonResponse, userTable);
-                }
-
-            }
-          };
-          xhttp.open("POST", "selectFromYear", true);
-          xhttp.send(value);
-}
 
 function initVotePage() {
-
-
 
  document.getElementById("yearSelect").addEventListener("change", function(e){
                 getVoteList(document.getElementById("userSelect").value, e.target.value);
@@ -182,24 +160,7 @@ function initVotePage() {
 
 }
 
-function getVoteList(user, year) {
-       var xhttp;
-       var data = user + "," + year;
 
-              xhttp = new XMLHttpRequest();
-
-              xhttp.onreadystatechange = function() {
-                if (this.readyState == 4 && this.status == 200) {
-                var jsonResponse = JSON.parse(xhttp.responseText);
-                fillVoteTable(jsonResponse);
-
-                   console.log(jsonResponse);
-
-                }
-              };
-              xhttp.open("POST", "getVotes", true);
-              xhttp.send(data);
-}
 function fillVoteTable(data) {
 var tableDiv = document.getElementById("tableDiv");
    tableDiv.innerHTML = "";
@@ -233,13 +194,55 @@ var tableDiv = document.getElementById("tableDiv");
 
 }
 
+//http request functions
+
+function getVoteList(user, year) {
+       var xhttp;
+       var data = user + "," + year;
+
+              xhttp = new XMLHttpRequest();
+
+              xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                var jsonResponse = JSON.parse(xhttp.responseText);
+                fillVoteTable(jsonResponse);
+
+                   console.log(jsonResponse);
+
+                }
+              };
+              xhttp.open("POST", "getVotes", true);
+              xhttp.send(data);
+}
+
+function fillTableFromYear(value){
+          var xhttp;
+
+          xhttp = new XMLHttpRequest();
+
+          xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+            var jsonResponse = JSON.parse(xhttp.responseText);
+
+                if(isAdmin) {
+                    fillTable(jsonResponse, adminTable);
+                } else {
+                    fillTable(jsonResponse, userTable);
+                }
+
+            }
+          };
+          xhttp.open("POST", "selectFromYear", true);
+          xhttp.send(value);
+}
+
 
 
 function updateDB() {
 
     var rows = adminTable.rows;
     let httpText = "";
-    for(var i = 1; i < getAmountOfNonEmptyRows(adminTable, 0); i++) {
+    for(var i = 1; i < getIndexOfFirstEmptyRowInColumn(adminTable, 0); i++) {
 
 
         var name = sanitizeUserInput(rows[i].getElementsByTagName("td")[0].innerHTML);
@@ -268,75 +271,97 @@ function updateDB() {
 }
 
 function confirmVotes() {
-    var rows = userTable.rows;
-    var xhttp;
-    let data = "";
+  // Get the rows of the user table
+  const rows = userTable.rows;
 
-     for(var i = 1; i < getAmountOfNonEmptyRows(userTable, 0); i++) { //getamount bad
+  // Initialize an empty data array
+  const data = [];
 
+  // Loop through the rows of the table and build the data array
+  for (let i = 1; i < getIndexOfFirstEmptyRowInColumn(userTable, 0); i++) {
+    // Get the rating, song ID, and user ID from the table row
+    const rating = sanitizeUserInput(rows[i].getElementsByTagName("td")[3].innerHTML);
+    const songID = sanitizeUserInput(rows[i].getElementsByClassName("hiddenID")[0].innerHTML);
+    const userID = getCookie("userID");
 
-            var rating = sanitizeUserInput(rows[i].getElementsByTagName("td")[3].innerHTML);
-            var songID = sanitizeUserInput(rows[i].getElementsByClassName("hiddenID")[0].innerHTML);
-            var userID = getCookie("userID");
-
-            data += '{"rating": "' + rating +  '", "songID": "' + songID +  '", "userID": "' + userID +  '"}, ';
-
-        }
-
-
-
-
-
-    xhttp = new XMLHttpRequest();
-
-    xhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-
-        }
-    };
-    xhttp.open("POST", "confirmVotes", true);
-    xhttp.send(data);
-}
-function getCookie(cname) {
-  let name = cname + "=";
-  let decodedCookie = decodeURIComponent(document.cookie);
-  let ca = decodedCookie.split(';');
-  for(let i = 0; i <ca.length; i++) {
-    let c = ca[i];
-    while (c.charAt(0) == ' ') {
-      c = c.substring(1);
-    }
-    if (c.indexOf(name) == 0) {
-      return c.substring(name.length, c.length);
-    }
+    // Add the data to the data array in JSON format
+    data.push({ rating, songID, userID });
   }
-  return "";
+
+  // Send the data to the server via a POST request using fetch
+  fetch("confirmVotes", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    // Handle the server response here if needed
+  })
+  .catch(error => {
+    console.error("There was a problem with the fetch operation:", error);
+  });
+}
+
+//helper functions
+
+function getCookie(cname) {
+  const name = cname + "=";
+  const decodedCookie = decodeURIComponent(document.cookie);
+  const cookie = decodedCookie.split(';').find(c => c.trim().startsWith(name));
+  if (cookie) {
+    return cookie.substring(name.length);
+  }
+  throw new Error(`Cookie "${cname}" not found.`);
+}
+
+function initLoginPage() {
+  const loginButton = document.querySelector("#loginButton");
+  loginButton.addEventListener("click", () => {
+    console.log("loginButton clicked");
+    attemptLogin();
+  });
 }
 
 function attemptLogin() {
-          var xhttp;
-          let data = "";
-          data += document.getElementById("usernameInput").value;
-          data += "§";
-          data += document.getElementById("passwordInput").value;
+  const usernameInput = document.querySelector("#usernameInput");
+  const passwordInput = document.querySelector("#passwordInput");
 
-          xhttp = new XMLHttpRequest();
+  const data = {
+    username: usernameInput.value,
+    password: passwordInput.value
+  };
 
-          xhttp.onreadystatechange = function() {
-          if (this.readyState == 4 && this.status == 200) {
-            if (xhttp.responseText != -1) {
-            document.cookie = "userID=" + xhttp.responseText;
-             window.location.replace(
-               "/user"
-             );
-            }else if(xhttp.responseText == -1) {
-             alert("login failed");
-            }
-            }
-          };
-          xhttp.open("POST", "login", true);
-          xhttp.send(data);
+  fetch("login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
+  }).then(response => {
+    if (response.ok) {
+      return response.json();
+    } else {
+      throw new Error("Network response was not ok. Status: " + response.status);
+    }
+  }).then(data => {
+    if (data !== -1) {
+      document.cookie = "userID=" + data;
+      window.location.replace("/user");
+    } else {
+      alert("Login failed");
+    }
+  }).catch(error => {
+    console.error("Error during login:", error);
+    alert("Login failed");
+  });
 }
+
+
 
 //stops the program from breaking when { or } is input
 function sanitizeUserInput(input) {
@@ -354,7 +379,7 @@ function sortTable(n,targetTable ) {
     no switching has been done: */
 
     //only want to sort non empty rows
-    var nonEmptyRows = getAmountOfNonEmptyRows(targetTable, n);
+    var nonEmptyRows = getIndexOfFirstEmptyRowInColumn(targetTable, n);
 
     while (switching) {
       // Start by saying: no switching is done:
@@ -406,29 +431,32 @@ function sortTable(n,targetTable ) {
   }
 
 function clearTable(targetTable) {
-
-        for(var row = 1; row < targetTable.rows.length; row++) {
-                targetTable.rows[row].getElementsByTagName("td")[0].innerHTML = "";
-
-                targetTable.rows[row].getElementsByTagName("td")[1].innerHTML = "";
-
-                targetTable.rows[row].getElementsByTagName("td")[2].innerHTML = "";
-
-                targetTable.rows[row].getElementsByTagName("td")[3].innerHTML = "";
-
-                targetTable.rows[row].getElementsByClassName("hiddenID")[0].innerHTML = "";
-        }
-}
-
-function getAmountOfNonEmptyRows(table_, n){
-    var rows = table_.rows;
-    for (i = 1; i < (rows.length - 1); i++) {
-        if(rows[i].getElementsByTagName("td")[0].innerHTML.trim() == "" &&
-            rows[i].getElementsByTagName("td")[1].innerHTML.trim() == "" &&
-            rows[i].getElementsByTagName("td")[2].innerHTML.trim() == "" &&
-            rows[i].getElementsByTagName("td")[3].innerHTML.trim() == "" &&
-            rows[i].getElementsByClassName("hiddenID")[0].innerHTML.trim() == ""){
-            return i;
-        }
+  // Loop over all rows in the table
+  for (var row = 1; row < targetTable.rows.length; row++) {
+    // Loop over all cells in the current row
+    var cells = targetTable.rows[row].querySelectorAll("td");
+    for (var col = 0; col < cells.length; col++) {
+      // Clear the text content of the current cell
+      cells[col].textContent = "";
     }
+    // Clear the text content of the hidden ID cell
+    targetTable.rows[row].querySelector(".hiddenID").textContent = "";
+  }
 }
+
+function getIndexOfFirstEmptyRowInColumn(tableElement, columnIndex) {
+  const rows = tableElement.rows;
+  const numRows = rows.length;
+
+  for (let i = 1; i < numRows - 1; i++) {
+    const cellValue = rows[i].cells[columnIndex].textContent.trim();
+
+    if (cellValue === "") {
+      return i;
+    }
+  }
+
+  console.error(`No empty rows found in column ${columnIndex}`);
+  return -1; // or return null, depending on your use case
+}
+
