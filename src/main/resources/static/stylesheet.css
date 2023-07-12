@@ -9,14 +9,13 @@ display:block;
 }
 #tableDiv {
     height:900px;
-  max-width: 80%;
+  max-width: 90%;
   overflow: scroll;
 }
 table {
   border: 1px solid #ddd;
   border-collapse: collapse;
   table-layout: fixed;
-  width: 200px;
 }
 
 td, th {

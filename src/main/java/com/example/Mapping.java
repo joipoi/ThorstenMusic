@@ -1,30 +1,18 @@
 package com.example;
 
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.sql.Types;
 import java.util.*;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import javax.servlet.http.HttpServletRequest;
-
-import static java.sql.JDBCType.NULL;
 
 @Controller
 public class Mapping {
@@ -53,11 +41,11 @@ public class Mapping {
     }
 
 
-    private void  removeSongDB(String ID) {
+    private void  removeSongDB(int ID) {
 
 
         String sql = "DELETE FROM thorsten_music.song WHERE songID = ?;";
-                jdbcTemplate.update(sql, Integer.parseInt(ID));
+                jdbcTemplate.update(sql, ID);
 
     }
     private void InsertSongDB(String name, String artist, String category, String year) {
@@ -104,7 +92,7 @@ public class Mapping {
         jdbcTemplate.update(sql, args);
     }
 
-    private List<Map<String, Object>>  selectVote(String userID, String year) {
+    private List<Map<String, Object>> selectVoteFull(String userID, String year) {
 
 
 
@@ -113,11 +101,6 @@ public class Mapping {
         String sql = "SELECT song.name, user.username, vote.rating\n" +
                 "FROM thorsten_music.song, thorsten_music.user, thorsten_music.vote\n" +
                 "WHERE 1 = 1";
-
-
-
-
-        //String sql = "SELECT * FROM thorsten_music.vote WHERE 1 = 1";
 
 
         if(!userID.equals("userID")) {
@@ -138,25 +121,57 @@ public class Mapping {
         return list;
     }
 
+    private String getUsernameDB(String userID) {
+
+        ArrayList<java.lang.Object> argsList = new ArrayList<>();
+
+        String query = "SELECT username FROM thorsten_music.user WHERE userID = ?";
+
+        Object[] args = {userID};
+
+        List<Map<String, Object>> list =  jdbcTemplate.queryForList(query, args);
+
+        String username = list.get(0).get("username").toString();
 
 
+
+        return username;
+    }
+
+    private static String selectVote(JdbcTemplate jdbcTemplate, String userID, String songID) {
+
+        Object[] args = {userID, songID};
+
+        String sql = "SELECT  vote.rating\n" +
+                "FROM thorsten_music.vote\n" +
+                "WHERE user.userID = ? AND  song.songID = ?  ";
+
+        List<Map<String, Object>> list =  jdbcTemplate.queryForList(sql, args);
+
+        String vote = list.get(0).get("rating").toString();
+
+        return vote;
+
+    }
+
+
+    /* /
+     * HTML Mappings
+      * */
 
     @GetMapping("/")
     public String index(Model model) {
-        model.addAttribute("DBresponse", selectAllSongDB());
 
         return "admin";
     }
 
     @GetMapping("/admin")
     public String loginaHandler(Model model) {
-        model.addAttribute("DBresponse", selectAllSongDB());
 
         return "admin";
     }
     @GetMapping("/user")
     public String userHandler(Model model) {
-        model.addAttribute("DBresponse", selectAllSongDB());
 
         return "user";
     }
@@ -168,17 +183,21 @@ public class Mapping {
     }
     @GetMapping("/votes")
     public String voteHandler(Model model) {
-        //model.addAttribute("DBresponse", );
 
         return "votes";
     }
+
+    /* /
+     * DB Mappings
+     * */
+
 
     @PostMapping("/getVotes")
     public @ResponseBody List<Map<String, Object>> getVotes(@RequestBody String data) {
 
         String userID = data.split(",")[0];
         String year = data.split(",")[1];
-        List<Map<String, Object>> voteList = selectVote(userID, year);
+        List<Map<String, Object>> voteList = selectVoteFull(userID, year);
 
 
         return voteList;
@@ -197,13 +216,34 @@ public class Mapping {
     }
 
     @PostMapping("/updateDB")
-    public @ResponseBody List<Map<String, Object>> updateDB(@RequestBody String stringTable) {
+    public @ResponseBody List<Map<String, Object>> updateDB(@RequestBody String DBrow) {
 
 
-        List<Map<String, Object>> HTTPlist = stringToMapList(stringTable);
-        List<Map<String, Object>> DBlist = selectAllSongDB();
+        List<Map<String, Object>> DBmap = stringToMapList(DBrow);
+        Map<String, Object> MapRow = DBmap.get(0);
 
-        compateTables(HTTPlist, DBlist);
+        String artist = MapRow.get("artist").toString();
+        String name = MapRow.get("name").toString();
+        String category = MapRow.get("category").toString();
+        String year = MapRow.get("year").toString();
+        if(MapRow.get("songID").toString().isEmpty()) {
+            InsertSongDB(name,artist,category,year);
+            System.out.println("inserted song");
+        } else {
+            int songID = Integer.parseInt(MapRow.get("songID").toString());
+            if(MapRow.get("name").toString().isEmpty() && MapRow.get("artist").toString().isEmpty()) {
+                removeSongDB(songID);
+                System.out.println("removed song");
+            } else {
+                UpdateSongDB(name,  artist,  category, year, songID);
+                System.out.println("updated song");
+            }
+        }
+
+
+
+
+
 
         return selectAllSongDB();
     }
@@ -235,6 +275,15 @@ public class Mapping {
         return selectSongFromYear(value);
     }
 
+    @PostMapping("/getUsername")
+    public @ResponseBody String getUsername(@RequestBody String userID) {
+
+        return getUsernameDB(userID);
+    }
+
+
+
+
     private int authLogin(String username, String password) {
         List<Map<String, Object>> userList = selectAllUsersDB();
 
@@ -251,52 +300,6 @@ public class Mapping {
         return -1;
     }
 
-    private void compateTables(List<Map<String, Object>> HTTPlist, List<Map<String, Object>> DBlist) {
-
-    for(int i = 0; i < HTTPlist.size(); i++) {
-
-        Map<String, Object> rowMap = HTTPlist.get(i);
-        String ID = rowMap.get("songID").toString();
-        //this loop just gets me the index of the map with maching ID
-
-        String name = rowMap.get("name").toString();
-        String artist = rowMap.get("artist").toString();
-        String category = rowMap.get("category").toString();
-        String year = rowMap.get("year").toString();
-
-        int index = getIndex(ID, DBlist);
-        if(index == 400) {
-            System.out.println("insert row in db");
-
-            InsertSongDB(name, artist, category, year);
-        } else {
-
-        Map<String, Object> DBrowMap = DBlist.get(index);
-        if(
-                        DBrowMap.get("name").equals(rowMap.get("name")) &&
-                        DBrowMap.get("artist").equals(rowMap.get("artist")) &&
-                        DBrowMap.get("category").equals(rowMap.get("category")) &&
-                        DBrowMap.get("year").toString().equals(rowMap.get("year"))
-        ) {
-            System.out.println("No changes made");
-
-        }else if(rowMap.get("name").toString().isEmpty() &&
-                rowMap.get("artist").toString().isEmpty() &&
-                rowMap.get("category").toString().isEmpty()) {
-            removeSongDB(ID);
-
-        }
-
-
-        else {
-            System.out.println("update db where id = " + ID);
-            UpdateSongDB(name, artist, category, year, Integer.parseInt(ID));
-
-        }
-        }
-    }
-    System.out.println("NEW ROW");
-}
     private int getIndex(String ID, List<Map<String, Object>> DBlist) {
     for(int j = 0; j < DBlist.size(); j++) {
         if(DBlist.get(j).get("songID").toString().equals(ID)) {

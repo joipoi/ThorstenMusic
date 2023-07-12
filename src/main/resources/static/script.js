@@ -1,36 +1,85 @@
 var tableDiv;
-var DBresponse;
 var adminTable;
 var userTable;
 var isAdmin;
 
 
-function init(DBresponseTemp, user) { //fix this pls
-DBresponse = DBresponseTemp;
-tableDiv = document.getElementById("tableDiv");
+///
+///user.html functions
+///
 
-if(user == 'user' ) {
-isAdmin = false;
+//initalizes the user.html page
+function initUserPage() {
+    tableDiv = document.getElementById("tableDiv");
+    userTable = document.createElement('table');
+    getUsername();
+
+
     generateBlankUserTable();
-     document.getElementById("confirmVotesBtn").addEventListener("click", function(){
-                confirmVotes();
-            });
-}else {
-isAdmin = true;
-    generateBlankAdminTable();
-
-
+    document.getElementById("confirmVotesBtn").addEventListener("click", function(){
+        confirmVotes();
+    });
+    document.getElementById("yearSelect").addEventListener("change", function(e){
+        GetSongsFromYear(e.target.value, userTable);
+    });
 }
- document.getElementById("yearSelect").addEventListener("change", function(e){
-            fillTableFromYear(e.target.value);
+
+function generateBlankUserTable() {
+    userTable.id = 'userTable';
+    tableDiv.appendChild(userTable);
+
+    var row = userTable.insertRow(0);
+    for(var i = 0; i < 4; i++) {
+        var th = document.createElement('th');
+        row.appendChild(th);
+    }
+
+    for(var i = 0; i < 15; i++) {
+         var row = userTable.insertRow(userTable.length);
+
+          for(var j = 0; j < 4; j++) {
+                 var cell = row.insertCell(j);
+                 if(j == 3) {
+                    cell.contentEditable = true;
+                 }
+             }
+
+    }
+
+    userTable.rows[0].getElementsByTagName("th")[0].innerHTML = "Låt";
+    userTable.rows[0].getElementsByTagName("th")[1].innerHTML = "Artist";
+    userTable.rows[0].getElementsByTagName("th")[2].innerHTML = "Kategori";
+    userTable.rows[0].getElementsByTagName("th")[3].innerHTML = "Poäng";
+
+    for(let i = 0; i < 4; i++) {
+        userTable.rows[0].getElementsByTagName("th")[i].addEventListener("click", function(){
+            sortTable(i, userTable);
         });
+    }
 
+    GetSongsFromYear(document.getElementById("yearSelect").value, userTable);
+     console.log("test gen");
 
 }
 
+
+///
+///admin.html functions
+///
+
+//initalizes the admin.html page
+ function initAdminPage() {
+ tableDiv = document.getElementById("tableDiv");
+ adminTable = document.createElement('table');
+
+ generateBlankAdminTable();
+
+    document.getElementById("yearSelect").addEventListener("change", function(e){
+        GetSongsFromYear(e.target.value, adminTable);
+    });
+ }
 
 function generateBlankAdminTable() {
-    adminTable = document.createElement('table');
     adminTable.id = 'adminTable';
     tableDiv.appendChild(adminTable);
 
@@ -42,24 +91,19 @@ function generateBlankAdminTable() {
 
     for(var i = 0; i < 15; i++) {
          var row = adminTable.insertRow(adminTable.length);
-         var hiddenID = document.createElement('td');
-         hiddenID.classList.add('hiddenID');
-         row.appendChild(hiddenID);
 
 
           for(var j = 0; j < 3; j++) {
                  var cell = row.insertCell(j);
                  cell.contentEditable = true;
 
-               /*  cell.addEventListener("blur", function(e){
-                     updateDB();
-                 }); */
           }
           var updateBtn = document.createElement('button');
           updateBtn.innerHTML = '<img src="update.png"  width="100" height="50"> '
             updateBtn.addEventListener("click", function(e){
-                               updateDB();
-                               console.log("updated");
+            var songID = row.getAttribute('data-id');
+                               updateAdminTableInDatabase(e.target.parentElement.parentElement);
+                               console.log(e.target.parentElement.parentElement.getAttribute('data-id'));
                            });
         //  updateCell.src = "update.png";
          // updateCell.id = "updateImg";
@@ -77,57 +121,11 @@ function generateBlankAdminTable() {
         });
     }
 
-    fillTableFromYear(document.getElementById("yearSelect").value);
-
-}
-function generateBlankUserTable() {
-    userTable = document.createElement('table');
-    userTable.id = 'userTable';
-    tableDiv.appendChild(userTable);
-
-    var row = userTable.insertRow(0);
-    for(var i = 0; i < 10; i++) {
-        var th = document.createElement('th');
-        row.appendChild(th);
-    }
-
-    for(var i = 0; i < 30; i++) {
-         var row = userTable.insertRow(userTable.length);
-         var hiddenID = document.createElement('td');
-         hiddenID.classList.add('hiddenID');
-         row.appendChild(hiddenID);
-
-
-          for(var j = 0; j < 10; j++) {
-
-                 var cell = row.insertCell(j);
-
-                 cell.addEventListener("blur", function(e){
-
-                     });
-
-                 if(j == 3) {
-                    cell.contentEditable = true;
-                 }
-             }
-
-    }
-
-    userTable.rows[0].getElementsByTagName("th")[0].innerHTML = "Låt";
-    userTable.rows[0].getElementsByTagName("th")[1].innerHTML = "Artist";
-    userTable.rows[0].getElementsByTagName("th")[2].innerHTML = "Kategori";
-    userTable.rows[0].getElementsByTagName("th")[3].innerHTML = "Poäng";
-
-    for(let i = 0; i < 5; i++) {
-        userTable.rows[0].getElementsByTagName("th")[i].addEventListener("click", function(){
-            sortTable(i, userTable);
-        });
-    }
-
-    fillTable(DBresponse, userTable);
+    GetSongsFromYear(document.getElementById("yearSelect").value, adminTable);
 
 }
 
+//fills either user or admin table with DB data
 function fillTable(tableData, targetTable) {
     clearTable(targetTable);
 
@@ -140,26 +138,50 @@ function fillTable(tableData, targetTable) {
 
                 targetTable.rows[row].getElementsByTagName("td")[2].innerHTML = tableData[row].category;
 
-                targetTable.rows[row].getElementsByClassName("hiddenID")[0].innerHTML = tableData[row].songID;
+                targetTable.rows[row].setAttribute('data-id', tableData[row].songID);
+
+                if(targetTable == userTable) {
+               //why is it returning a billion?
+
+                fetchUserVotesByYear(getCookie("userID"), document.getElementById("yearSelect").value)
+                                  .then(function(jsonResponse) {
+                                   var names = jsonResponse.map(function(obj) {
+                                         return obj.username;
+                                       });
+                                       console.log(names);
+                                  })
+                                  .catch(function(error) {
+                                    console.error(error);
+                                  });
+
+               /* getUsername()
+                  .then(function(responseText) {
+                    console.log(responseText);
+                  })
+                  .catch(function(error) {
+                    console.error(error);
+                  }); */
+                }
 
         }
 }
 
-
+///
+///votes.html functions
+///
 function initVotePage() {
 
  document.getElementById("yearSelect").addEventListener("change", function(e){
-                getVoteList(document.getElementById("userSelect").value, e.target.value);
+                fetchUserVotesByYear(document.getElementById("userSelect").value, e.target.value);
             });
  document.getElementById("userSelect").addEventListener("change", function(e){
-                 getVoteList(e.target.value, document.getElementById("yearSelect").value);
+                 fetchUserVotesByYear(e.target.value, document.getElementById("yearSelect").value);
              });
 
- getVoteList("userID", "year");
+ fetchUserVotesByYear("userID", "year");
 
 
 }
-
 
 function fillVoteTable(data) {
 var tableDiv = document.getElementById("tableDiv");
@@ -194,9 +216,33 @@ var tableDiv = document.getElementById("tableDiv");
 
 }
 
-//http request functions
+///
+///http request functions
+///
+function fetchUserVotesByYear(user, year) {
+  return new Promise(function(resolve, reject) {
+    var xhttp;
+    var data = user + "," + year;
 
-function getVoteList(user, year) {
+    xhttp = new XMLHttpRequest();
+
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4) {
+        if (this.status == 200) {
+          var jsonResponse = JSON.parse(xhttp.responseText);
+          resolve(jsonResponse);
+        } else {
+          reject("Error: " + xhttp.status);
+        }
+      }
+    };
+
+    xhttp.open("POST", "getVotes", true);
+    xhttp.send(data);
+  });
+}
+
+function fetchRating(userID, songID) {
        var xhttp;
        var data = user + "," + year;
 
@@ -205,17 +251,17 @@ function getVoteList(user, year) {
               xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
                 var jsonResponse = JSON.parse(xhttp.responseText);
-                fillVoteTable(jsonResponse);
 
                    console.log(jsonResponse);
 
                 }
               };
-              xhttp.open("POST", "getVotes", true);
+              xhttp.open("POST", "getRating", true);
               xhttp.send(data);
 }
 
-function fillTableFromYear(value){
+
+function GetSongsFromYear(year, targetTable){
           var xhttp;
 
           xhttp = new XMLHttpRequest();
@@ -223,36 +269,25 @@ function fillTableFromYear(value){
           xhttp.onreadystatechange = function() {
             if (this.readyState == 4 && this.status == 200) {
             var jsonResponse = JSON.parse(xhttp.responseText);
-
-                if(isAdmin) {
-                    fillTable(jsonResponse, adminTable);
-                } else {
-                    fillTable(jsonResponse, userTable);
-                }
-
+                    fillTable(jsonResponse, targetTable);
             }
           };
           xhttp.open("POST", "selectFromYear", true);
-          xhttp.send(value);
+          xhttp.send(year);
 }
 
+function updateAdminTableInDatabase(row) {
 
-
-function updateDB() {
-
-    var rows = adminTable.rows;
     let httpText = "";
-    for(var i = 1; i < getIndexOfFirstEmptyRowInColumn(adminTable, 0); i++) {
 
 
-        var name = sanitizeUserInput(rows[i].getElementsByTagName("td")[0].innerHTML);
-        var artist = sanitizeUserInput(rows[i].getElementsByTagName("td")[1].innerHTML);
-        var category = sanitizeUserInput(rows[i].getElementsByTagName("td")[2].innerHTML);
+        var name = sanitizeUserInput(row.getElementsByTagName("td")[0].innerHTML);
+        var artist = sanitizeUserInput(row.getElementsByTagName("td")[1].innerHTML);
+        var category = sanitizeUserInput(row.getElementsByTagName("td")[2].innerHTML);
         var year = document.getElementById("yearSelect").value;
-        var songID = sanitizeUserInput(rows[i].getElementsByClassName("hiddenID")[0].innerHTML);
+        var songID = row.getAttribute('data-id')
 
         httpText += '{"name": "' + name +  '", "artist": "' + artist +  '", "category": "' + category +  '", "year": "' + year +  '", "songID": "' + songID +  '"}, ';
-    }
 
       var xhttp;
 
@@ -261,8 +296,7 @@ function updateDB() {
       xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
          var jsonResponse = JSON.parse(xhttp.responseText);
-        fillTable(jsonResponse,adminTable)
-        console.log(jsonResponse);
+        GetSongsFromYear(document.getElementById("yearSelect").value,adminTable)
 
         }
       };
@@ -281,7 +315,7 @@ function confirmVotes() {
   for (let i = 1; i < getIndexOfFirstEmptyRowInColumn(userTable, 0); i++) {
     // Get the rating, song ID, and user ID from the table row
     const rating = sanitizeUserInput(rows[i].getElementsByTagName("td")[3].innerHTML);
-    const songID = sanitizeUserInput(rows[i].getElementsByClassName("hiddenID")[0].innerHTML);
+    const songID = sanitizeUserInput(rows[i].getAttribute('data-id'));
     const userID = getCookie("userID");
 
     // Add the data to the data array in JSON format
@@ -307,7 +341,31 @@ function confirmVotes() {
   });
 }
 
-//helper functions
+function getUsername() {
+  return new Promise(function(resolve, reject) {
+    var userID = getCookie("userID");
+    var xhttp = new XMLHttpRequest();
+
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4) {
+        if (this.status == 200) {
+          resolve(xhttp.responseText);
+        } else {
+          reject("Error: " + xhttp.status);
+        }
+      }
+    };
+
+    xhttp.open("POST", "getUsername", true);
+    xhttp.send(userID);
+  });
+}
+
+
+
+///
+///helper functions
+///
 
 function getCookie(cname) {
   const name = cname + "=";
@@ -440,7 +498,7 @@ function clearTable(targetTable) {
       cells[col].textContent = "";
     }
     // Clear the text content of the hidden ID cell
-    targetTable.rows[row].querySelector(".hiddenID").textContent = "";
+    targetTable.rows[row].setAttribute('data-id', "");
   }
 }
 

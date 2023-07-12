@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
-<link th:href="@{/stylesheet.css?version=68}" rel="stylesheet"/>
+<link th:href="@{/stylesheet.css?version=69}" rel="stylesheet"/>
 <script type="text/javascript" th:src="@{/script.js?Num=44}"></script>
 <head>
     <meta charset="UTF-8">
@@ -8,6 +8,8 @@
 </head>
 <body>
 <div id="topDiv">
+
+    <p id="userLoggedIn"></p>
 
     <select name="yearSelect" id="yearSelect" >
         <option value="2018">2018</option>
@@ -28,8 +30,7 @@
 
 
 <script th:inline="javascript">
-      var dbResponse = /*[[${DBresponse}]]*/;
-      document.onload = init(dbResponse, 'user');
+      document.onload = initUserPage();
 
 </script>
 </body>
