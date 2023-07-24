@@ -58,7 +58,6 @@ function generateBlankUserTable() {
     }
 
     GetSongsFromYear(document.getElementById("yearSelect").value, userTable);
-     console.log("test gen");
 
 }
 
@@ -128,57 +127,46 @@ function generateBlankAdminTable() {
 //fills either user or admin table with DB data
 function fillTable(tableData, targetTable) {
     clearTable(targetTable);
-
-        for(var row = 1; row < tableData.length; row++) {
-
-
-                targetTable.rows[row].getElementsByTagName("td")[0].innerHTML = tableData[row].name;
-
-                targetTable.rows[row].getElementsByTagName("td")[1].innerHTML = tableData[row].artist;
-
-                targetTable.rows[row].getElementsByTagName("td")[2].innerHTML = tableData[row].category;
-
-                targetTable.rows[row].setAttribute('data-id', tableData[row].songID);
-
-                if(targetTable == userTable) {
-               //why is it returning a billion?
-
-                fetchUserVotesByYear(getCookie("userID"), document.getElementById("yearSelect").value)
-                                  .then(function(jsonResponse) {
-                                   var names = jsonResponse.map(function(obj) {
-                                         return obj.username;
-                                       });
-                                       console.log(names);
-                                  })
-                                  .catch(function(error) {
-                                    console.error(error);
-                                  });
-
-               /* getUsername()
-                  .then(function(responseText) {
-                    console.log(responseText);
-                  })
-                  .catch(function(error) {
-                    console.error(error);
-                  }); */
+    if (targetTable == userTable) {
+        fetchUserVotesByYear(getCookie("userID"), document.getElementById("yearSelect").value)
+            .then(function(jsonResponse) {
+                var ratingArray = jsonResponse;
+                for (var row = 1; row < tableData.length; row++) {
+                    targetTable.rows[row].getElementsByTagName("td")[0].innerHTML = tableData[row].name;
+                    targetTable.rows[row].getElementsByTagName("td")[1].innerHTML = tableData[row].artist;
+                    targetTable.rows[row].getElementsByTagName("td")[2].innerHTML = tableData[row].category;
+                    targetTable.rows[row].setAttribute('data-id', tableData[row].songID);
+                    targetTable.rows[row].getElementsByTagName("td")[3].innerHTML = ratingArray[row - 1];
                 }
-
+            })
+            .catch(function(error) {
+                console.error(error);
+            });
+    } else {
+        for (var row = 1; row < tableData.length; row++) {
+            targetTable.rows[row].getElementsByTagName("td")[0].innerHTML = tableData[row].name;
+            targetTable.rows[row].getElementsByTagName("td")[1].innerHTML = tableData[row].artist;
+            targetTable.rows[row].getElementsByTagName("td")[2].innerHTML = tableData[row].category;
+            targetTable.rows[row].setAttribute('data-id', tableData[row].songID);
         }
+    }
 }
 
 ///
 ///votes.html functions
 ///
 function initVotePage() {
+document.getElementById("yearSelect").value = "2018";
+document.getElementById("userSelect").value = "1";
 
  document.getElementById("yearSelect").addEventListener("change", function(e){
-                fetchUserVotesByYear(document.getElementById("userSelect").value, e.target.value);
+                fetchVoteTable(document.getElementById("userSelect").value, e.target.value);
             });
  document.getElementById("userSelect").addEventListener("change", function(e){
-                 fetchUserVotesByYear(e.target.value, document.getElementById("yearSelect").value);
+                 fetchVoteTable(e.target.value, document.getElementById("yearSelect").value);
              });
 
- fetchUserVotesByYear("userID", "year");
+ fetchVoteTable(document.getElementById("userSelect").value, document.getElementById("yearSelect").value);
 
 
 }
@@ -194,8 +182,9 @@ var tableDiv = document.getElementById("tableDiv");
       //the first tableRow has the headers which include an onclick event which sorts the columns
      tr.innerHTML = '   <th onclick="sortTable(0)">Låt</th> <th onclick="sortTable(1)">Anändare</th>  <th onclick="sortTable(2)">Röstning</th>';
      table.appendChild(tr);
-
+    console.log("data: " + data)
      for(var row = 0; row < data.length; row++) {
+    // console.log("row" + data[row]);
                  var tr = document.createElement('tr');
 
                  var song = document.createElement('td');
@@ -219,10 +208,10 @@ var tableDiv = document.getElementById("tableDiv");
 ///
 ///http request functions
 ///
-function fetchUserVotesByYear(user, year) {
+function fetchUserVotesByYear(userID, year) {
   return new Promise(function(resolve, reject) {
     var xhttp;
-    var data = user + "," + year;
+    var data = userID + "," + year;
 
     xhttp = new XMLHttpRequest();
 
@@ -242,9 +231,9 @@ function fetchUserVotesByYear(user, year) {
   });
 }
 
-function fetchRating(userID, songID) {
+function fetchVoteTable(userID, year) {
        var xhttp;
-       var data = user + "," + year;
+       var data = userID + "," + year;
 
               xhttp = new XMLHttpRequest();
 
@@ -252,11 +241,11 @@ function fetchRating(userID, songID) {
                 if (this.readyState == 4 && this.status == 200) {
                 var jsonResponse = JSON.parse(xhttp.responseText);
 
-                   console.log(jsonResponse);
+                   fillVoteTable(jsonResponse);
 
                 }
               };
-              xhttp.open("POST", "getRating", true);
+              xhttp.open("POST", "getVoteTable", true);
               xhttp.send(data);
 }
 
@@ -380,12 +369,12 @@ function getCookie(cname) {
 function initLoginPage() {
   const loginButton = document.querySelector("#loginButton");
   loginButton.addEventListener("click", () => {
-    console.log("loginButton clicked");
     attemptLogin();
   });
 }
 
-function attemptLogin() {
+
+function attemptLogin(loginButton) {
   const usernameInput = document.querySelector("#usernameInput");
   const passwordInput = document.querySelector("#passwordInput");
 
@@ -416,6 +405,8 @@ function attemptLogin() {
   }).catch(error => {
     console.error("Error during login:", error);
     alert("Login failed");
+  }).finally(() => {
+    loginButton.disabled = false; // enable the button
   });
 }
 

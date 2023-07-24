@@ -138,20 +138,43 @@ public class Mapping {
         return username;
     }
 
-    private static String selectVote(JdbcTemplate jdbcTemplate, String userID, String songID) {
+    private String[] selectVote(String userID, String year) {
 
-        Object[] args = {userID, songID};
+        Object[] args = {userID, year};
 
         String sql = "SELECT  vote.rating\n" +
                 "FROM thorsten_music.vote\n" +
-                "WHERE user.userID = ? AND  song.songID = ?  ";
+                "JOIN thorsten_music.song ON vote.songID = song.songID\n" +
+                "JOIN thorsten_music.user ON vote.userID = user.userID\n" +
+                "WHERE vote.userID = ? AND song.year = ?;";
 
         List<Map<String, Object>> list =  jdbcTemplate.queryForList(sql, args);
 
-        String vote = list.get(0).get("rating").toString();
+        String[] arrayOfStrings = list.stream()
+                .map(map -> String.valueOf(map.get("rating")))
+                .toArray(String[]::new);
 
-        return vote;
+        //System.out.println(Arrays.toString(arrayOfStrings)); // ["4", "5", "3", "2"]
 
+
+        return arrayOfStrings;
+    }
+
+    private List<Map<String, Object>> getVoteTable(String userID, String year) {
+
+        Object[] args = {userID, year};
+
+        String sql = "SELECT  vote.rating, user.username, song.name\n" +
+                "FROM thorsten_music.vote\n" +
+                "JOIN thorsten_music.song ON vote.songID = song.songID\n" +
+                "JOIN thorsten_music.user ON vote.userID = user.userID\n" +
+                "WHERE vote.userID = ? AND song.year = ?;";
+
+        List<Map<String, Object>> list =  jdbcTemplate.queryForList(sql, args);
+
+        System.out.println("user: " + userID + "year " + year);
+
+        return list;
     }
 
 
@@ -193,14 +216,22 @@ public class Mapping {
 
 
     @PostMapping("/getVotes")
-    public @ResponseBody List<Map<String, Object>> getVotes(@RequestBody String data) {
+    public @ResponseBody String[] getVotes(@RequestBody String data) {
 
         String userID = data.split(",")[0];
         String year = data.split(",")[1];
-        List<Map<String, Object>> voteList = selectVoteFull(userID, year);
+
+        return selectVote(userID, year);
+    }
+
+    @PostMapping("/getVoteTable")
+    public @ResponseBody List<Map<String, Object>> getVoteTable(@RequestBody String data) {
+
+        String userID = data.split(",")[0];
+        String year = data.split(",")[1];
 
 
-        return voteList;
+        return getVoteTable(userID, year);
     }
 
 
@@ -240,11 +271,6 @@ public class Mapping {
             }
         }
 
-
-
-
-
-
         return selectAllSongDB();
     }
     @PostMapping("/confirmVotes")
@@ -260,8 +286,6 @@ public class Mapping {
             if(rating.isEmpty()) {
                 rating = "-1";
             }
-
-
 
             InsertVotesDB(songID,userID , rating);
         }
@@ -282,7 +306,7 @@ public class Mapping {
     }
 
 
-
+//helper functions
 
     private int authLogin(String username, String password) {
         List<Map<String, Object>> userList = selectAllUsersDB();
