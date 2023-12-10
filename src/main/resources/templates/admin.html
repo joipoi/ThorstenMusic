@@ -1,27 +1,29 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
-<link th:href="@{/stylesheet.css?version=68}" rel="stylesheet"/>
-<script type="text/javascript" th:src="@{/script.js?Num=44}"></script>
+<link th:href="@{/stylesheet.css?version=91}" rel="stylesheet"/>
+<script type="text/javascript" th:src="@{/script.js?Num=45}"></script>
 <head>
     <meta charset="UTF-8">
     <title>Main Page</title>
 </head>
+<header> ADMIN -LÄGG TILL LÅTAR </header>
 <body>
 <div id="topDiv">
-    <div><button id="saveToDbButton">Spara till Databas</button></div>
 
     <select name="yearSelect" id="yearSelect" >
-        <option value="2018">2018</option>
-        <option value="2019">2019</option>
         <option value="2020">2020</option>
         <option value="2021">2021</option>
         <option value="2022">2022</option>
+        <option value="2023">2023</option>
+        <option value="2024">2024</option>
+        <option value="2025">2025</option>
     </select>
 
 </div>
-
-
-    
+<div id="div2">
+<a href="login"> <button id="logoutBtn" class="button2">logga ut</button> </a>
+<a href="votes"> <button id="adminBtn" class="button2">till röster</button> </a>
+</div>
 <div id="tableDiv"></div>
 
 

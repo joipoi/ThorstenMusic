@@ -1,30 +1,69 @@
 body {
   font-family: -apple-system;
-  font-size: 90%;
+  font-size: 110%;
   color: #333;
 }
 
-div{
-display:block;
+#topDiv {
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
+
+#userLoggedIn {
+  font-size: 120%;
+  margin-right: 10px; /* Add margin for spacing */
+}
+
+.button2 {
+  font-size: 110%;
+  padding: 10px 20px;
+  background-color: #f44336;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button1 {
+  font-size: 110%;
+  padding: 10px 20px;
+  background-color: #fcba03;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#yearSelect {
+  font-size: 110%;
+  padding: 5px 10px;
+  margin-left: 10px; /* Add margin for spacing */
+}
+
+/* Keep the existing CSS for the table */
 #tableDiv {
-    height:900px;
+  height: 900px;
   max-width: 90%;
   overflow: scroll;
 }
+
 table {
   border: 1px solid #ddd;
   border-collapse: collapse;
   table-layout: fixed;
 }
 
-td, th {
+td,
+th {
   white-space: nowrap;
   border: 1px solid #ddd;
   padding: 20px;
   width: 200px;
   overflow: hidden;
 }
+
 th {
   background-color: #eee;
   position: sticky;
@@ -43,3 +82,18 @@ height:50px;
     height:50px;
     width:100px;
 }
+#div2{
+  position:fixed;
+  left:1000px;
+  top:60px;
+}
+#textDiv{
+font-size:20px;
+}
+ header {
+    background-color: #333; /* Change the background color to your preference */
+    color: #fff; /* Change the text color to your preference */
+    padding: 10px; /* Adjust the padding as needed */
+    margin-bottom: 20px; /* Adjust the margin as needed */
+    text-align: center; /* Center the text horizontally */
+  }

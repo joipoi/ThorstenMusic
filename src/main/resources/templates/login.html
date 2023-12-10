@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
-<link th:href="@{/stylesheet.css?version=68}" rel="stylesheet"/>
-<script type="text/javascript" th:src="@{/script.js?Num=32}"></script>
+<link th:href="@{/stylesheet.css?version=91}" rel="stylesheet"/>
+<script type="text/javascript" th:src="@{/script.js?Num=33}"></script>
 <head>
     <meta charset="UTF-8">
     <title>login</title>
@@ -13,18 +13,27 @@
         <label>Username : </label>
         <input id="usernameInput" type="text" placeholder="Enter Username" name="username" >
         <label>Password : </label>
-        <input id="passwordInput" type="text" placeholder="Enter Password" name="password">
+        <input id="passwordInput" type="password" placeholder="Enter Password" name="password">
         <button  id="loginButton">Login</button>
     </div>
-
-
+<div id="textDiv">
+<H1>TEST INFO FÖR TESTARE:</H1>
+<p>logga in som admin = username:admin, password:admin</p>
+<p>logga in som thorsten = username:thorsten, password:thorsten</p>
+<p>sidor som finns: login, user, admin, votes</p>
+</div>
 <script th:inline="javascript">
-      document.getElementById("loginButton").addEventListener("click", function(){
-        initLoginPage()
+const loginButton = document.querySelector("#loginButton");
+  loginButton.addEventListener("click", () => {
+    attemptLogin();
+  });
 
-});
- window.addEventListener("load", initLoginPage);
-
+function handleKeyPress(event) {
+        if (event.keyCode === 13) {
+            attemptLogin();
+        }
+    }
+document.addEventListener('keypress', handleKeyPress);
 </script>
 </body>
 

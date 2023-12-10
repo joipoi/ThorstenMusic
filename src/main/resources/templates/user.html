@@ -1,27 +1,29 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
-<link th:href="@{/stylesheet.css?version=69}" rel="stylesheet"/>
-<script type="text/javascript" th:src="@{/script.js?Num=44}"></script>
+<link th:href="@{/stylesheet.css?version=91}" rel="stylesheet"/>
+<script type="text/javascript" th:src="@{/script.js?Num=46}"></script>
 <head>
     <meta charset="UTF-8">
     <title>Main Page</title>
 </head>
+<header> USER - RÖSTA </header>
 <body>
 <div id="topDiv">
 
-    <p id="userLoggedIn"></p>
-
-    <select name="yearSelect" id="yearSelect" >
-        <option value="2018">2018</option>
-        <option value="2019">2019</option>
-        <option value="2020">2020</option>
-        <option value="2021">2021</option>
-        <option value="2022">2022</option>
-    </select>
-
-    <div><button id="confirmVotesBtn">Bekräfta Röstning</button></div>
+        <p id="userLoggedIn"></p>
+     <a href="login"> <button id="logoutBtn" class="button2">logga ut</button> </a>
+    </div>
+    <div>
+        <button id="confirmVotesBtn" class="button1">Bekräfta Röstning</button>
+        <select name="yearSelect" id="yearSelect">
+            <option value="2018">2018</option>
+            <option value="2019">2019</option>
+            <option value="2020">2020</option>
+            <option value="2021">2021</option>
+            <option value="2022">2022</option>
+        </select>
+    </div>
 </div>
-
 
 
 <div id="tableDiv"></div>

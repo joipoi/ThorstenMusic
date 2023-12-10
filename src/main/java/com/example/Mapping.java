@@ -91,6 +91,15 @@ public class Mapping {
         String sql = "INSERT INTO thorsten_music.vote (`songID`, `userID`, `rating`) VALUES (?, ?, ?);";
         jdbcTemplate.update(sql, args);
     }
+    private void UpdateVotesDB(String songID, String userID, String rating ) {
+        java.lang.Object[] args = new java.lang.Object[]{rating, songID , userID};
+
+
+
+        String sql = "UPDATE thorsten_music.vote SET rating = ? WHERE songID = ? AND userID = ?";
+        jdbcTemplate.update(sql, args);
+    }
+
 
     private List<Map<String, Object>> selectVoteFull(String userID, String year) {
 
@@ -138,6 +147,7 @@ public class Mapping {
         return username;
     }
 
+    //LOOK AT THE 2 METHODS BELOW, DO I NEED BOTH, WHAT IS GOING ON HERE
     private String[] selectVote(String userID, String year) {
 
         Object[] args = {userID, year};
@@ -154,28 +164,54 @@ public class Mapping {
                 .map(map -> String.valueOf(map.get("rating")))
                 .toArray(String[]::new);
 
-        //System.out.println(Arrays.toString(arrayOfStrings)); // ["4", "5", "3", "2"]
-
-
         return arrayOfStrings;
     }
 
     private List<Map<String, Object>> getVoteTable(String userID, String year) {
 
-        Object[] args = {userID, year};
+        List<Map<String, Object>> list;
+            ArrayList<java.lang.Object> argsList = new ArrayList<>();
+
+            String sql = "SELECT  vote.rating, user.username, song.name\n" +
+                    "FROM thorsten_music.vote\n" +
+                    "JOIN thorsten_music.song ON vote.songID = song.songID\n" +
+                    "JOIN thorsten_music.user ON vote.userID = user.userID\n" +
+                    "WHERE 1 = 1";
+
+            if(!userID.equals("alla")) {
+                sql += " AND vote.userID = ?";
+                argsList.add(Integer.parseInt(userID));
+            }
+            if(!year.equals("alla")) {
+                sql += " AND song.year = ?";
+                argsList.add(Integer.parseInt(year));
+            }
+        sql += ";";
+        java.lang.Object[] args = argsList.toArray();
+
+        list =  jdbcTemplate.queryForList(sql, args);
+
+
+
+
+        return list;
+    }
+    private List<Map<String, Object>> getVoteFromSongIDAndUserID(String userID, String songID) {
+
+        Object[] args = {userID, songID};
 
         String sql = "SELECT  vote.rating, user.username, song.name\n" +
                 "FROM thorsten_music.vote\n" +
                 "JOIN thorsten_music.song ON vote.songID = song.songID\n" +
                 "JOIN thorsten_music.user ON vote.userID = user.userID\n" +
-                "WHERE vote.userID = ? AND song.year = ?;";
+                "WHERE vote.userID = ? AND song.songID = ?;";
 
         List<Map<String, Object>> list =  jdbcTemplate.queryForList(sql, args);
 
-        System.out.println("user: " + userID + "year " + year);
 
         return list;
     }
+
 
 
     /* /
@@ -287,7 +323,15 @@ public class Mapping {
                 rating = "-1";
             }
 
-            InsertVotesDB(songID,userID , rating);
+            //user has not voted on song before
+            if(getVoteFromSongIDAndUserID(userID, songID).isEmpty()) {
+                InsertVotesDB(songID,userID , rating);
+            }//user has voted on song before
+            else {
+                UpdateVotesDB(songID, userID, rating);
+            }
+
+           //
         }
 
         return "aaahh";

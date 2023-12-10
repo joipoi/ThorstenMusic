@@ -12,13 +12,23 @@ var isAdmin;
 function initUserPage() {
     tableDiv = document.getElementById("tableDiv");
     userTable = document.createElement('table');
-    getUsername();
 
+    getUsername()
+      .then(function(response) {
+        var username = response;
+        document.getElementById("userLoggedIn").innerHTML = "Logged in as: " + username;
+      })
+      .catch(function(error) {
+        // Handle any errors that occur during the getUsername function
+        console.error("Error:", error);
+      });
 
     generateBlankUserTable();
-    document.getElementById("confirmVotesBtn").addEventListener("click", function(){
-        confirmVotes();
-    });
+     document.getElementById("confirmVotesBtn").addEventListener("click", function() {
+            if (confirm("Are you sure you want to confirm the votes?")) {
+                confirmVotes();
+            }
+        });
     document.getElementById("yearSelect").addEventListener("change", function(e){
         GetSongsFromYear(e.target.value, userTable);
     });
@@ -79,49 +89,58 @@ function generateBlankUserTable() {
  }
 
 function generateBlankAdminTable() {
-    adminTable.id = 'adminTable';
-    tableDiv.appendChild(adminTable);
+  adminTable.id = 'adminTable';
+  tableDiv.appendChild(adminTable);
 
-    var row = adminTable.insertRow(0);
-    for(var i = 0; i < 3; i++) {
-        var th = document.createElement('th');
-        row.appendChild(th);
+  var row = adminTable.insertRow(0);
+  for (var i = 0; i < 3; i++) {
+    var th = document.createElement('th');
+    row.appendChild(th);
+  }
+
+  for (var i = 0; i < 15; i++) {
+    var row = adminTable.insertRow(adminTable.length);
+
+    for (var j = 0; j < 3; j++) {
+      var cell = row.insertCell(j);
+      cell.contentEditable = true;
+      cell.addEventListener("input", markRowAsModified);
     }
 
-    for(var i = 0; i < 15; i++) {
-         var row = adminTable.insertRow(adminTable.length);
+    var updateBtn = document.createElement('button');
+    updateBtn.innerHTML = '<img src="update.png" width="100" height="50"> ';
+   updateBtn.addEventListener("click", function (row) {
+         return function () {
+           var songID = row.getAttribute('data-id');
+           updateAdminTableInDatabase(row);
+           console.log(row.getAttribute('data-id'));
 
+           // Change the color of the row back to normal after update
+           row.style.backgroundColor = "";
+         };
+       }(row)); // Pass the current row as a parameter to the event listener function
+       row.appendChild(updateBtn);
+     }
 
-          for(var j = 0; j < 3; j++) {
-                 var cell = row.insertCell(j);
-                 cell.contentEditable = true;
+  adminTable.rows[0].getElementsByTagName("th")[0].innerHTML = "Låt";
+  adminTable.rows[0].getElementsByTagName("th")[1].innerHTML = "Artist";
+  adminTable.rows[0].getElementsByTagName("th")[2].innerHTML = "Kategori";
 
-          }
-          var updateBtn = document.createElement('button');
-          updateBtn.innerHTML = '<img src="update.png"  width="100" height="50"> '
-            updateBtn.addEventListener("click", function(e){
-            var songID = row.getAttribute('data-id');
-                               updateAdminTableInDatabase(e.target.parentElement.parentElement);
-                               console.log(e.target.parentElement.parentElement.getAttribute('data-id'));
-                           });
-        //  updateCell.src = "update.png";
-         // updateCell.id = "updateImg";
-          row.appendChild(updateBtn);
+  for (let i = 0; i < 3; i++) {
+    adminTable.rows[0].getElementsByTagName("th")[i].addEventListener("click", function () {
+      sortTable(i, adminTable);
+    });
+  }
 
-    }
+  GetSongsFromYear(document.getElementById("yearSelect").value, adminTable);
+}
 
-    adminTable.rows[0].getElementsByTagName("th")[0].innerHTML = "Låt";
-    adminTable.rows[0].getElementsByTagName("th")[1].innerHTML = "Artist";
-    adminTable.rows[0].getElementsByTagName("th")[2].innerHTML = "Kategori";
+function markRowAsModified(event) {
+  var cell = event.target;
+  var row = cell.parentNode;
 
-    for(let i = 0; i < 3; i++) {
-        adminTable.rows[0].getElementsByTagName("th")[i].addEventListener("click", function(){
-            sortTable(i, adminTable);
-        });
-    }
-
-    GetSongsFromYear(document.getElementById("yearSelect").value, adminTable);
-
+  // Change the color of the modified row
+  row.style.backgroundColor = "red";
 }
 
 //fills either user or admin table with DB data
@@ -136,7 +155,12 @@ function fillTable(tableData, targetTable) {
                     targetTable.rows[row].getElementsByTagName("td")[1].innerHTML = tableData[row].artist;
                     targetTable.rows[row].getElementsByTagName("td")[2].innerHTML = tableData[row].category;
                     targetTable.rows[row].setAttribute('data-id', tableData[row].songID);
-                    targetTable.rows[row].getElementsByTagName("td")[3].innerHTML = ratingArray[row - 1];
+
+                    if(ratingArray[row - 1] === undefined) {
+                        targetTable.rows[row].getElementsByTagName("td")[3].innerHTML = "";
+                    }else {
+                        targetTable.rows[row].getElementsByTagName("td")[3].innerHTML = ratingArray[row - 1];
+                    }
                 }
             })
             .catch(function(error) {
@@ -152,6 +176,8 @@ function fillTable(tableData, targetTable) {
     }
 }
 
+
+
 ///
 ///votes.html functions
 ///
@@ -160,11 +186,11 @@ document.getElementById("yearSelect").value = "2018";
 document.getElementById("userSelect").value = "1";
 
  document.getElementById("yearSelect").addEventListener("change", function(e){
-                fetchVoteTable(document.getElementById("userSelect").value, e.target.value);
-            });
+    fetchVoteTable(document.getElementById("userSelect").value, e.target.value);
+ });
  document.getElementById("userSelect").addEventListener("change", function(e){
-                 fetchVoteTable(e.target.value, document.getElementById("yearSelect").value);
-             });
+    fetchVoteTable(e.target.value, document.getElementById("yearSelect").value);
+ });
 
  fetchVoteTable(document.getElementById("userSelect").value, document.getElementById("yearSelect").value);
 
@@ -201,9 +227,9 @@ var tableDiv = document.getElementById("tableDiv");
 
                  table.appendChild(tr)
          }
-
-
 }
+
+
 
 ///
 ///http request functions
@@ -248,7 +274,6 @@ function fetchVoteTable(userID, year) {
               xhttp.open("POST", "getVoteTable", true);
               xhttp.send(data);
 }
-
 
 function GetSongsFromYear(year, targetTable){
           var xhttp;
@@ -338,6 +363,7 @@ function getUsername() {
     xhttp.onreadystatechange = function() {
       if (this.readyState == 4) {
         if (this.status == 200) {
+        console.log(xhttp.responseText);
           resolve(xhttp.responseText);
         } else {
           reject("Error: " + xhttp.status);
@@ -356,6 +382,8 @@ function getUsername() {
 ///helper functions
 ///
 
+
+
 function getCookie(cname) {
   const name = cname + "=";
   const decodedCookie = decodeURIComponent(document.cookie);
@@ -366,15 +394,7 @@ function getCookie(cname) {
   throw new Error(`Cookie "${cname}" not found.`);
 }
 
-function initLoginPage() {
-  const loginButton = document.querySelector("#loginButton");
-  loginButton.addEventListener("click", () => {
-    attemptLogin();
-  });
-}
-
-
-function attemptLogin(loginButton) {
+function attemptLogin() {
   const usernameInput = document.querySelector("#usernameInput");
   const passwordInput = document.querySelector("#passwordInput");
 
@@ -398,7 +418,12 @@ function attemptLogin(loginButton) {
   }).then(data => {
     if (data !== -1) {
       document.cookie = "userID=" + data;
-      window.location.replace("/user");
+      if(getCookie("userID") == 3) {
+        window.location.replace("/admin");
+      }else {
+        window.location.replace("/user");
+      }
+
     } else {
       alert("Login failed");
     }
@@ -406,7 +431,6 @@ function attemptLogin(loginButton) {
     console.error("Error during login:", error);
     alert("Login failed");
   }).finally(() => {
-    loginButton.disabled = false; // enable the button
   });
 }
 
