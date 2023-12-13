@@ -1,6 +1,7 @@
 var tableDiv;
 var adminTable;
 var userTable;
+var resultTable;
 var isAdmin;
 
 
@@ -229,6 +230,76 @@ var tableDiv = document.getElementById("tableDiv");
          }
 }
 
+///
+///Results.html functions
+///
+function initResultsPage() {
+ tableDiv = document.getElementById("tableDiv");
+ resultTable = document.createElement('table');
+
+ generateBlankResultTable();
+
+    document.getElementById("yearSelect").addEventListener("change", function(e){
+        GetSongsFromYear(e.target.value, resultTable);
+    });
+ }
+
+function generateBlankResultTable() {
+
+    tableDiv.appendChild(resultTable);
+
+    var row = resultTable.insertRow(0);
+    for(var i = 0; i < 5; i++) {
+        var th = document.createElement('th');
+        row.appendChild(th);
+    }
+
+    for(var i = 0; i < 15; i++) {
+         var row = resultTable.insertRow(resultTable.length);
+
+          for(var j = 0; j < 5; j++) {
+                 var cell = row.insertCell(j);
+             }
+
+    }
+
+    resultTable.rows[0].getElementsByTagName("th")[0].innerHTML = "Låt";
+    resultTable.rows[0].getElementsByTagName("th")[1].innerHTML = "Artist";
+    resultTable.rows[0].getElementsByTagName("th")[2].innerHTML = "Kategori";
+    resultTable.rows[0].getElementsByTagName("th")[3].innerHTML = "Poäng";
+    resultTable.rows[0].getElementsByTagName("th")[4].innerHTML = "Resultat";
+
+    for(let i = 0; i < 4; i++) {
+        resultTable.rows[0].getElementsByTagName("th")[i].addEventListener("click", function(){
+            sortTable(i, resultTable);
+        });
+    }
+
+    //GetSongsFromYear(document.getElementById("yearSelect").value, resultTable);
+
+}
+function fillResultsTable(data) {
+/*THIS FUNCTION IS NEXT, FIX IT, BELOW IS NOT RIGHT
+     for(var row = 0; row < data.length; row++) {
+    // console.log("row" + data[row]);
+                 var tr = document.createElement('tr');
+
+                 var song = document.createElement('td');
+                 song.innerHTML = data[row].name;
+                 tr.appendChild(song);
+
+                 var user = document.createElement('td');
+                 user.innerHTML = data[row].username;
+                 tr.appendChild(user);
+
+                 var vote = document.createElement('td');
+                 vote.innerHTML = data[row].rating;
+                 tr.appendChild(vote);
+
+                 table.appendChild(tr)
+         } */
+}
+
 
 
 ///
@@ -374,6 +445,22 @@ function getUsername() {
     xhttp.open("POST", "getUsername", true);
     xhttp.send(userID);
   });
+}
+
+
+function GetResultsFromYear(year){
+          var xhttp;
+
+          xhttp = new XMLHttpRequest();
+
+          xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+            var jsonResponse = JSON.parse(xhttp.responseText);
+                    fillResultsTable(jsonResponse);
+            }
+          };
+          xhttp.open("POST", "getResults", true);
+          xhttp.send(year);
 }
 
 

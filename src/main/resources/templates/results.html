@@ -1,10 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>g
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<link th:href="@{/stylesheet.css?version=91}" rel="stylesheet"/>
+<script type="text/javascript" th:src="@{/script.js?Num=47}"></script>
+<head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Resultat</title>
 </head>
+<header> ADMIN - Resultat </header>
 <body>
+<select name="yearSelect" id="yearSelect">
+    <option value="2018">2018</option>
+    <option value="2019">2019</option>
+    <option value="2020">2020</option>
+    <option value="2021">2021</option>
+    <option value="2022">2022</option>
+</select>
 
+<div id="tableDiv"></div>
+
+
+
+
+<script th:inline="javascript">
+      document.onload = initResultsPage();
+
+
+</script>
 </body>
 </html>
