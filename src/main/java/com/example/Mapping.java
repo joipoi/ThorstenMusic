@@ -211,6 +211,22 @@ public class Mapping {
 
         return list;
     }
+    private List<Map<String, Object>> getResultsFromYear(String year) {
+
+        Object[] args = {year};
+
+        String sql = "SELECT s.songID, s.name, s.artist, s.category, s.year, SUM(v.rating) AS total_rating\n" +
+                "FROM thorsten_music.song s\n" +
+                "JOIN thorsten_music.vote v ON s.songID = v.songID\n" +
+                "WHERE s.year = ?\n" +
+                "GROUP BY s.songID, s.name, s.artist, s.category, s.year\n" +
+                "ORDER BY total_rating DESC;";
+
+        List<Map<String, Object>> list =  jdbcTemplate.queryForList(sql, args);
+
+        System.out.println(list);
+        return list;
+    }
 
 
 
@@ -221,7 +237,7 @@ public class Mapping {
     @GetMapping("/")
     public String index(Model model) {
 
-        return "admin";
+        return "login";
     }
 
     @GetMapping("/admin")
@@ -244,6 +260,12 @@ public class Mapping {
     public String voteHandler(Model model) {
 
         return "votes";
+    }
+    @GetMapping("/results")
+    public String resultHandler(Model model) {
+        getResultsFromYear("2020");
+
+        return "results";
     }
 
     /* /
@@ -347,6 +369,11 @@ public class Mapping {
     public @ResponseBody String getUsername(@RequestBody String userID) {
 
         return getUsernameDB(userID);
+    }
+    @PostMapping("/getResults")
+    public @ResponseBody List<Map<String, Object>> getResults(@RequestBody String year) {
+
+        return getResultsFromYear(year);
     }
 
 
