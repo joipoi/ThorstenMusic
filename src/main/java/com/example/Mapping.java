@@ -142,6 +142,7 @@ public class Mapping {
 
         String username = list.get(0).get("username").toString();
 
+        System.out.println("in getUsernameDB method, username = " + username);
 
 
         return username;
@@ -295,6 +296,7 @@ public class Mapping {
 
     @PostMapping("/login")
     public @ResponseBody int attemptLogin(@RequestBody String userInfo) throws IOException {
+        System.out.println("in attemptLogin method, userinfo = " + userInfo);
         ObjectMapper mapper = new ObjectMapper();
         Map<String, String> userData = mapper.readValue(userInfo, new TypeReference<Map<String, String>>(){});
 
@@ -305,30 +307,32 @@ public class Mapping {
     }
 
     @PostMapping("/updateDB")
-    public @ResponseBody List<Map<String, Object>> updateDB(@RequestBody String DBrow) {
+    public @ResponseBody List<Map<String, Object>> updateDB(@RequestBody String modifiedTable) {
 
 
-        List<Map<String, Object>> DBmap = stringToMapList(DBrow);
-        Map<String, Object> MapRow = DBmap.get(0);
+        List<Map<String, Object>> DBmap = stringToMapList(modifiedTable);
+        for (int i = 0; i < DBmap.size(); i++) {
+            Map<String, Object> MapRow = DBmap.get(i);
 
-        String artist = MapRow.get("artist").toString();
-        String name = MapRow.get("name").toString();
-        String category = MapRow.get("category").toString();
-        String year = MapRow.get("year").toString();
-        if(MapRow.get("songID").toString().isEmpty()) {
-            InsertSongDB(name,artist,category,year);
-            System.out.println("inserted song");
-        } else {
-            int songID = Integer.parseInt(MapRow.get("songID").toString());
-            if(MapRow.get("name").toString().isEmpty() && MapRow.get("artist").toString().isEmpty()) {
-                removeSongDB(songID);
-                System.out.println("removed song");
+            String artist = MapRow.get("artist").toString();
+            String name = MapRow.get("name").toString();
+            String category = MapRow.get("category").toString();
+            String year = MapRow.get("year").toString();
+            if (MapRow.get("songID").toString().isEmpty()) {
+                InsertSongDB(name,artist,category,year);
+                System.out.println("inserted song" + name);
             } else {
-                UpdateSongDB(name,  artist,  category, year, songID);
-                System.out.println("updated song");
+                int songID = Integer.parseInt(MapRow.get("songID").toString());
+                if (MapRow.get("name").toString().isEmpty() && MapRow.get("artist").toString().isEmpty()) {
+                    removeSongDB(songID);
+                    System.out.println("removed song" + name);
+                } else {
+                    UpdateSongDB(name,  artist,  category, year, songID);
+                    System.out.println("updated song" + name);
+                }
             }
-        }
 
+        }
         return selectAllSongDB();
     }
     @PostMapping("/confirmVotes")
@@ -367,6 +371,7 @@ public class Mapping {
 
     @PostMapping("/getUsername")
     public @ResponseBody String getUsername(@RequestBody String userID) {
+        System.out.println("in getUsername method, userID = " + userID);
 
         return getUsernameDB(userID);
     }
@@ -380,7 +385,9 @@ public class Mapping {
 //helper functions
 
     private int authLogin(String username, String password) {
+
         List<Map<String, Object>> userList = selectAllUsersDB();
+        System.out.println("in authLogin method, username + password =  " + username + " + " + password );
 
         for(int i = 0; i < userList.size(); i++) {
             Map<String, Object> row = userList.get(i);
