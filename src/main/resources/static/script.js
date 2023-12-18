@@ -507,7 +507,7 @@ function attemptLogin() {
   }).then(data => {
     if (data !== -1) {
       document.cookie = "userID=" + data;
-      if(getCookie("userID") == 3) {
+      if(getCookie("userID") == 3) {//THIS IS A PROBLEM BECAUE 3 IS JUST THE USERID FOR ADMIN ON MY COMPUTER
         window.location.replace("/admin");
       }else {
         window.location.replace("/user");

@@ -286,6 +286,7 @@ public class Mapping {
     @PostMapping("/getVoteTable")
     public @ResponseBody List<Map<String, Object>> getVoteTable(@RequestBody String data) {
 
+
         String userID = data.split(",")[0];
         String year = data.split(",")[1];
 
