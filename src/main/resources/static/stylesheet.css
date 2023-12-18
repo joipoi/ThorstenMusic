@@ -18,7 +18,7 @@ body {
 .button2 {
   font-size: 110%;
   padding: 10px 20px;
-  background-color: #f44336;
+  background-color: #6a5150;
   color: #fff;
   border: none;
   border-radius: 5px;
@@ -29,18 +29,13 @@ body {
 .button1 {
   font-size: 110%;
   padding: 10px 20px;
-  background-color: #fcba03;
+  background-color: #6a5150;
   color: #fff;
   border: none;
   border-radius: 5px;
   cursor: pointer;
 }
 
-#yearSelect {
-  font-size: 110%;
-  padding: 5px 10px;
-  margin-left: 10px; /* Add margin for spacing */
-}
 
 /* Keep the existing CSS for the table */
 #tableDiv {

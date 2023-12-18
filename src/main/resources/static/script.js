@@ -3,6 +3,7 @@ var adminTable;
 var userTable;
 var resultTable;
 var isAdmin;
+var modifiedRowsList = [];
 
 
 ///
@@ -17,6 +18,7 @@ function initUserPage() {
     getUsername()
       .then(function(response) {
         var username = response;
+        console.log("in initUserPage function, username = " + username)
         document.getElementById("userLoggedIn").innerHTML = "Logged in as: " + username;
       })
       .catch(function(error) {
@@ -107,21 +109,15 @@ function generateBlankAdminTable() {
       cell.contentEditable = true;
       cell.addEventListener("input", markRowAsModified);
     }
+    }
 
-    var updateBtn = document.createElement('button');
-    updateBtn.innerHTML = '<img src="update.png" width="100" height="50"> ';
-   updateBtn.addEventListener("click", function (row) {
-         return function () {
-           var songID = row.getAttribute('data-id');
-           updateAdminTableInDatabase(row);
-           console.log(row.getAttribute('data-id'));
-
-           // Change the color of the row back to normal after update
-           row.style.backgroundColor = "";
-         };
-       }(row)); // Pass the current row as a parameter to the event listener function
-       row.appendChild(updateBtn);
-     }
+    var confirmBtn = document.getElementById("confirmButton");
+   confirmBtn.addEventListener("click", function(e){
+   updateAdminTableInDatabase(modifiedRowsList);
+           for(var i = 0; i < modifiedRowsList.length; i++) {
+            modifiedRowsList[i].style.backgroundColor = "";
+           }
+    });
 
   adminTable.rows[0].getElementsByTagName("th")[0].innerHTML = "Låt";
   adminTable.rows[0].getElementsByTagName("th")[1].innerHTML = "Artist";
@@ -139,6 +135,10 @@ function generateBlankAdminTable() {
 function markRowAsModified(event) {
   var cell = event.target;
   var row = cell.parentNode;
+  if(!modifiedRowsList.includes(row)) {
+    modifiedRowsList.push(row);
+  }
+
 
   // Change the color of the modified row
   row.style.backgroundColor = "red";
@@ -360,18 +360,21 @@ function GetSongsFromYear(year, targetTable){
           xhttp.send(year);
 }
 
-function updateAdminTableInDatabase(row) {
+function updateAdminTableInDatabase(modifiedTable) {
 
     let httpText = "";
 
+    for(var i = 0; i < modifiedTable.length; i++ ) {
+    var row = modifiedTable[i];
 
-        var name = sanitizeUserInput(row.getElementsByTagName("td")[0].innerHTML);
-        var artist = sanitizeUserInput(row.getElementsByTagName("td")[1].innerHTML);
-        var category = sanitizeUserInput(row.getElementsByTagName("td")[2].innerHTML);
-        var year = document.getElementById("yearSelect").value;
-        var songID = row.getAttribute('data-id')
+            var name = sanitizeUserInput(row.getElementsByTagName("td")[0].innerHTML);
+            var artist = sanitizeUserInput(row.getElementsByTagName("td")[1].innerHTML);
+            var category = sanitizeUserInput(row.getElementsByTagName("td")[2].innerHTML);
+            var year = document.getElementById("yearSelect").value;
+            var songID = row.getAttribute('data-id')
 
-        httpText += '{"name": "' + name +  '", "artist": "' + artist +  '", "category": "' + category +  '", "year": "' + year +  '", "songID": "' + songID +  '"}, ';
+            httpText += '{"name": "' + name +  '", "artist": "' + artist +  '", "category": "' + category +  '", "year": "' + year +  '", "songID": "' + songID +  '"}, ';
+    }
 
       var xhttp;
 
@@ -433,7 +436,7 @@ function getUsername() {
     xhttp.onreadystatechange = function() {
       if (this.readyState == 4) {
         if (this.status == 200) {
-        console.log(xhttp.responseText);
+        console.log("in getUsername function, responseText = " + xhttp.responseText);
           resolve(xhttp.responseText);
         } else {
           reject("Error: " + xhttp.status);
