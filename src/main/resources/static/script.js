@@ -85,6 +85,9 @@ function generateBlankUserTable() {
 
 //initalizes the admin.html page
  function initAdminPage() {
+ if(getCookie("userID") !== "3") {
+    window.location.replace("/login");
+ }
  tableDiv = document.getElementById("tableDiv");
  adminTable = document.createElement('table');
 
