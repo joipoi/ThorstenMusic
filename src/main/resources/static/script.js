@@ -151,11 +151,11 @@ function fillTable(tableData, targetTable) {
         fetchUserVotesByYear(getCookie("userID"), document.getElementById("yearSelect").value)
             .then(function(jsonResponse) {
                 var ratingArray = jsonResponse;
-                for (var row = 1; row < tableData.length; row++) {
-                    targetTable.rows[row].getElementsByTagName("td")[0].innerHTML = tableData[row].name;
-                    targetTable.rows[row].getElementsByTagName("td")[1].innerHTML = tableData[row].artist;
-                    targetTable.rows[row].getElementsByTagName("td")[2].innerHTML = tableData[row].category;
-                    targetTable.rows[row].setAttribute('data-id', tableData[row].songID);
+                for (var row = 0; row < tableData.length; row++) {
+                    targetTable.rows[row+1].getElementsByTagName("td")[0].innerHTML = tableData[row].name;
+                    targetTable.rows[row+1].getElementsByTagName("td")[1].innerHTML = tableData[row].artist;
+                    targetTable.rows[row+1].getElementsByTagName("td")[2].innerHTML = tableData[row].category;
+                    targetTable.rows[row+1].setAttribute('data-id', tableData[row].songID);
 
                     if(ratingArray[row - 1] === undefined) {
                         targetTable.rows[row].getElementsByTagName("td")[3].innerHTML = "";
