@@ -29,6 +29,9 @@ function initUserPage() {
     generateBlankUserTable();
      document.getElementById("confirmVotesBtn").addEventListener("click", function() {
             if (confirm("Are you sure you want to confirm the votes?")) {
+            for(var i = 0; i < modifiedRowsList.length; i++) {
+                        modifiedRowsList[i].style.backgroundColor = "";
+                       }
                 confirmVotes();
             }
         });
@@ -54,6 +57,7 @@ function generateBlankUserTable() {
                  var cell = row.insertCell(j);
                  if(j == 3) {
                     cell.contentEditable = true;
+                     cell.addEventListener("input", markRowAsModified);
                  }
              }
 
