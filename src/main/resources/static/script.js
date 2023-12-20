@@ -474,11 +474,10 @@ function GetResultsFromYear(year){
 
 
 function getCookie(cname) {
-  const name = cname + "=";
   const decodedCookie = decodeURIComponent(document.cookie);
-  const cookie = decodedCookie.split(';').find(c => c.trim().startsWith(name));
+  const cookie = decodedCookie.split(';').find(c => c.trim().startsWith(cname));
   if (cookie) {
-    return cookie.substring(name.length);
+    return cookie.substring(cookie.indexOf("=")+1);
   }
   throw new Error(`Cookie "${cname}" not found.`);
 }
@@ -507,10 +506,11 @@ function attemptLogin() {
   }).then(data => {
     if (data !== -1) {
       document.cookie = "userID=" + data;
-      if(getCookie("userID") == 3) {
+      var userID = getCookie("userID");
+      if(userID === "3") {//THIS IS A PROBLEM BECAUE 3 IS JUST THE USERID FOR ADMIN ON MY COMPUTER
         window.location.replace("/admin");
       }else {
-        window.location.replace("/user");
+       window.location.replace("/user");
       }
 
     } else {
