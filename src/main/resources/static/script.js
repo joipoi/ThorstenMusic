@@ -157,10 +157,10 @@ function fillTable(tableData, targetTable) {
                     targetTable.rows[row+1].getElementsByTagName("td")[2].innerHTML = tableData[row].category;
                     targetTable.rows[row+1].setAttribute('data-id', tableData[row].songID);
 
-                    if(ratingArray[row - 1] === undefined) {
-                        targetTable.rows[row].getElementsByTagName("td")[3].innerHTML = "";
+                    if(ratingArray[row] === undefined) {
+                        targetTable.rows[row+1].getElementsByTagName("td")[3].innerHTML = "";
                     }else {
-                        targetTable.rows[row].getElementsByTagName("td")[3].innerHTML = ratingArray[row - 1];
+                        targetTable.rows[row+1].getElementsByTagName("td")[3].innerHTML = ratingArray[row];
                     }
                 }
             })
@@ -239,7 +239,7 @@ function initResultsPage() {
  generateBlankResultTable();
 
     document.getElementById("yearSelect").addEventListener("change", function(e){
-        GetSongsFromYear(e.target.value, resultTable);
+       GetResultsFromYear(e.target.value);
     });
  }
 
@@ -268,35 +268,24 @@ function generateBlankResultTable() {
     resultTable.rows[0].getElementsByTagName("th")[3].innerHTML = "Poäng";
     resultTable.rows[0].getElementsByTagName("th")[4].innerHTML = "Resultat";
 
-    for(let i = 0; i < 4; i++) {
+    for(let i = 0; i < 5; i++) {
         resultTable.rows[0].getElementsByTagName("th")[i].addEventListener("click", function(){
             sortTable(i, resultTable);
         });
     }
-
-    //GetSongsFromYear(document.getElementById("yearSelect").value, resultTable);
+    GetResultsFromYear(document.getElementById("yearSelect").value);
 
 }
-function fillResultsTable(data) {
-/*THIS FUNCTION IS NEXT, FIX IT, BELOW IS NOT RIGHT
-     for(var row = 0; row < data.length; row++) {
-    // console.log("row" + data[row]);
-                 var tr = document.createElement('tr');
-
-                 var song = document.createElement('td');
-                 song.innerHTML = data[row].name;
-                 tr.appendChild(song);
-
-                 var user = document.createElement('td');
-                 user.innerHTML = data[row].username;
-                 tr.appendChild(user);
-
-                 var vote = document.createElement('td');
-                 vote.innerHTML = data[row].rating;
-                 tr.appendChild(vote);
-
-                 table.appendChild(tr)
-         } */
+function fillResultsTable(tableData) {
+console.log("tabledata =  " + tableData);
+    for(var row = 0; row < tableData.length; row++) {
+                resultTable.rows[row+1].getElementsByTagName("td")[0].innerHTML = tableData[row].name;
+                resultTable.rows[row+1].getElementsByTagName("td")[1].innerHTML = tableData[row].artist;
+                resultTable.rows[row+1].getElementsByTagName("td")[2].innerHTML = tableData[row].category;
+                resultTable.rows[row+1].getElementsByTagName("td")[3].innerHTML = tableData[row].total_rating;
+                 resultTable.rows[row+1].getElementsByTagName("td")[4].innerHTML = row+1;
+                resultTable.rows[row+1].setAttribute('data-id', tableData[row].songID);
+         }
 }
 
 
