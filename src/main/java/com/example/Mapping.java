@@ -228,6 +228,28 @@ public class Mapping {
         System.out.println(list);
         return list;
     }
+    private void  removeUserDB(int ID) {
+        String sql = "DELETE FROM thorsten_music.user WHERE userID = ?;";
+        jdbcTemplate.update(sql, ID);
+
+    }
+    private void insertUserDB(String username, String password) {
+          java.lang.Object[] args;
+          args = new java.lang.Object[]{username, password};
+
+          String sql = "INSERT INTO thorsten_music.user (`username`, `password`) VALUES (?, ?, ?, ?);";
+          jdbcTemplate.update(sql, args);
+    }
+    private void updateUserDB(String username, String password, int ID) {
+
+        java.lang.Object[] args;
+        args = new java.lang.Object[]{username, password, ID};
+        String sql = "UPDATE thorsten_music.user\n" +
+                     "SET username = ?, password = ?\n" +
+                     "WHERE userID = ?;";
+        jdbcTemplate.update(sql, args);
+    }
+
 
 
 
@@ -267,6 +289,12 @@ public class Mapping {
         getResultsFromYear("2020");
 
         return "results";
+    }
+    @GetMapping("/userEditing")
+    public String userEditingHandler(Model model) {
+
+
+        return "userEditing";
     }
 
     /* /
@@ -381,6 +409,32 @@ public class Mapping {
 
         return getResultsFromYear(year);
     }
+    @PostMapping("/getAllUsers")
+    public @ResponseBody List<Map<String, Object>> getAllUsers() {
+        System.out.println("in all users " + selectAllUsersDB());
+
+        return selectAllUsersDB();
+    }
+    //todo this being void must be a problem for some reason
+
+    @PostMapping("/addUser")
+    public @ResponseBody void addUser(@RequestBody String username, String password) {
+
+        insertUserDB(username, password);
+    }
+    @PostMapping("/removeUser")
+    public @ResponseBody void removeUser(@RequestBody int userID) {
+
+        removeUserDB(userID);
+    }
+    @PostMapping("/editUser")
+    public @ResponseBody void editUser(@RequestBody String username, String password, int userID) {
+
+        updateUserDB(username, password, userID);
+    }
+
+
+
 
 
 //helper functions
@@ -388,7 +442,6 @@ public class Mapping {
     private int authLogin(String username, String password) {
 
         List<Map<String, Object>> userList = selectAllUsersDB();
-        System.out.println("in authLogin method, username + password =  " + username + " + " + password );
 
         for(int i = 0; i < userList.size(); i++) {
             Map<String, Object> row = userList.get(i);

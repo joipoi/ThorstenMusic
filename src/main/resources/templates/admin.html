@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
 <link th:href="@{/stylesheet.css?version=91}" rel="stylesheet"/>
-<script type="text/javascript" th:src="@{/script.js?Num=45}"></script>
+<script type="text/javascript" th:src="@{/script.js?Num=60}"></script>
 <head>
     <meta charset="UTF-8">
     <title>Admin</title>
@@ -24,11 +24,9 @@
 <div id="div2">
 <a href="login"> <button id="logoutBtn" class="button2">logga ut</button> </a>
 <a href="votes"> <button id="adminBtn" class="button2">till röster</button> </a>
+    <a href="results"> <button id="ToResultsBtn" class="button2">till resultat</button> </a>
 </div>
 <div id="tableDiv"></div>
-
-
-
 
 <script th:inline="javascript">
       document.onload = initAdminPage();

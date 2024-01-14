@@ -4,6 +4,7 @@ var userTable;
 var resultTable;
 var isAdmin;
 var modifiedRowsList = [];
+var selectedRow;
 
 
 ///
@@ -50,7 +51,7 @@ function generateBlankUserTable() {
         row.appendChild(th);
     }
 
-    for(var i = 0; i < 15; i++) {
+    for(var i = 0; i < 50; i++) {
          var row = userTable.insertRow(userTable.length);
 
           for(var j = 0; j < 4; j++) {
@@ -108,15 +109,28 @@ function generateBlankAdminTable() {
     row.appendChild(th);
   }
 
-  for (var i = 0; i < 15; i++) {
+  for (var i = 0; i < 50; i++) {
     var row = adminTable.insertRow(adminTable.length);
 
     for (var j = 0; j < 3; j++) {
       var cell = row.insertCell(j);
       cell.contentEditable = true;
       cell.addEventListener("input", markRowAsModified);
+
     }
+    var updateBtn = document.createElement('button');
+            updateBtn.innerHTML = '<img src="cross.png" width="100" height="50"> ';
+            row.appendChild(updateBtn);
+
+
+            (function(index) {
+                updateBtn.addEventListener("click", function(e) {
+                  clearTableRow(index+1);
+                });
+              })(i);
+
     }
+
 
     var confirmBtn = document.getElementById("confirmButton");
    confirmBtn.addEventListener("click", function(e){
@@ -162,6 +176,7 @@ function fillTable(tableData, targetTable) {
                     targetTable.rows[row+1].getElementsByTagName("td")[0].innerHTML = tableData[row].name;
                     targetTable.rows[row+1].getElementsByTagName("td")[1].innerHTML = tableData[row].artist;
                     targetTable.rows[row+1].getElementsByTagName("td")[2].innerHTML = tableData[row].category;
+
                     targetTable.rows[row+1].setAttribute('data-id', tableData[row].songID);
 
                     if(ratingArray[row] === undefined) {
@@ -190,7 +205,6 @@ function fillTable(tableData, targetTable) {
 ///votes.html functions
 ///
 function initVotePage() {
-document.getElementById("userSelect").value = "1";
 
  document.getElementById("yearSelect").addEventListener("change", function(e){
     fetchVoteTable(document.getElementById("userSelect").value, e.target.value);
@@ -215,9 +229,7 @@ var tableDiv = document.getElementById("tableDiv");
       //the first tableRow has the headers which include an onclick event which sorts the columns
      tr.innerHTML = '   <th onclick="sortTable(0)">Låt</th> <th onclick="sortTable(1)">Anändare</th>  <th onclick="sortTable(2)">Röstning</th>';
      table.appendChild(tr);
-    console.log("data: " + data)
      for(var row = 0; row < data.length; row++) {
-    // console.log("row" + data[row]);
                  var tr = document.createElement('tr');
 
                  var song = document.createElement('td');
@@ -295,6 +307,60 @@ console.log("tabledata =  " + tableData);
          }
 }
 
+///
+///userEditing.html functions
+///
+
+function userEditingInit() {
+    console.log("in init");
+    GetAllUsers();
+
+addButton = document.getElementById("addBtn");
+addButton.addEventListener("click", function(){
+    selectedRow.contentEditable = true;
+           // addUser("temp", "temp");
+
+        });
+removeButton = document.getElementById("removeBtn");
+removeButton.addEventListener("click", function(){
+
+           removeUser(selectedRow.getElementsByTagName("td")[0].innerHTML);
+           //console.log(selectedRow.getElementsByTagName("td")[0].innerHTML);
+        });
+editButton = document.getElementById("editBtn");
+editButton.addEventListener("click", function(){
+    selectedRow.contentEditable = true;
+            //editUser("temp","temp", "temp");
+        });
+
+
+
+}
+function fillUserEditingTable(data) {
+var table = document.getElementById('userEditingTable');
+
+  for (var i = 0; i < data.length+2; i++) {
+    var row = table.insertRow(i+1);
+    row.addEventListener("click", function(e){
+                    setAsSelected(e.target.parentElement);
+                });
+      if(i < data.length) {
+
+      var userID = row.insertCell();
+      userID.innerText = data[i].userID;
+
+      var username = row.insertCell();
+      username.innerText = data[i].username;
+
+      var password = row.insertCell();
+      password.innerText = data[i].password;
+      }else {
+      row.insertCell();
+      row.insertCell();
+      row.insertCell();
+      }
+  }
+}
 
 
 ///
@@ -461,6 +527,50 @@ function GetResultsFromYear(year){
           xhttp.send(year);
 }
 
+function GetAllUsers(){
+          var xhttp;
+
+          xhttp = new XMLHttpRequest();
+
+          xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+            var jsonResponse = JSON.parse(xhttp.responseText);
+                    fillUserEditingTable(jsonResponse);
+            }
+          };
+          xhttp.open("POST", "getAllUsers", true);
+          xhttp.send();
+}
+function removeUser(id) {
+  var xhttp;
+  xhttp = new XMLHttpRequest();
+  xhttp.open("POST", "removeUser", true);
+  xhttp.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
+  xhttp.send(id);
+}
+function addUser(username, password) {
+          var xhttp;
+          xhttp = new XMLHttpRequest();
+
+          xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+            }
+          };
+          xhttp.open("POST", "addUser", true);
+          xhttp.send(username, password);
+}
+function updateUser(username, password, id) {
+          var xhttp;
+          xhttp = new XMLHttpRequest();
+
+          xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+            }
+          };
+          xhttp.open("POST", "editUser", true);
+          xhttp.send(username, password, id);
+}
+
 
 
 ///
@@ -616,5 +726,19 @@ function getIndexOfFirstEmptyRowInColumn(tableElement, columnIndex) {
 
   console.error(`No empty rows found in column ${columnIndex}`);
   return -1; // or return null, depending on your use case
+}
+function clearTableRow(index) {
+              const cells = adminTable.rows[index].querySelectorAll('td');
+              cells.forEach(cell => {
+                        cell.textContent = '';
+                      });
+}
+function setAsSelected(rowObj) {
+    //if a row is selected already, make it white so as to de-select
+    if(selectedRow != null) {
+        selectedRow.style.backgroundColor = "white";
+    }
+    selectedRow = rowObj;
+    selectedRow.style.backgroundColor = "#997f7d";
 }
 
