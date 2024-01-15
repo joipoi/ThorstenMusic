@@ -310,7 +310,7 @@ console.log("tabledata =  " + tableData);
 ///
 ///userEditing.html functions
 ///
-
+//todo under here the eventlisteners
 function userEditingInit() {
     console.log("in init");
     GetAllUsers();
@@ -325,7 +325,6 @@ removeButton = document.getElementById("removeBtn");
 removeButton.addEventListener("click", function(){
 
            removeUser(selectedRow.getElementsByTagName("td")[0].innerHTML);
-           //console.log(selectedRow.getElementsByTagName("td")[0].innerHTML);
         });
 editButton = document.getElementById("editBtn");
 editButton.addEventListener("click", function(){
@@ -543,10 +542,17 @@ function GetAllUsers(){
 }
 function removeUser(id) {
   var xhttp;
-  xhttp = new XMLHttpRequest();
-  xhttp.open("POST", "removeUser", true);
-  xhttp.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
-  xhttp.send(id);
+
+           xhttp = new XMLHttpRequest();
+
+           xhttp.onreadystatechange = function() {
+             if (this.readyState == 4 && this.status == 200) {
+             var jsonResponse = JSON.parse(xhttp.responseText);
+                     fillResultsTable(jsonResponse);
+             }
+           };
+           xhttp.open("POST", "removeUser", true);
+           xhttp.send(id);
 }
 function addUser(username, password) {
           var xhttp;

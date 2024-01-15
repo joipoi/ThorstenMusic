@@ -228,7 +228,7 @@ public class Mapping {
         System.out.println(list);
         return list;
     }
-    private void  removeUserDB(int ID) {
+    private void  removeUserDB(String ID) {
         String sql = "DELETE FROM thorsten_music.user WHERE userID = ?;";
         jdbcTemplate.update(sql, ID);
 
@@ -418,19 +418,25 @@ public class Mapping {
     //todo this being void must be a problem for some reason
 
     @PostMapping("/addUser")
-    public @ResponseBody void addUser(@RequestBody String username, String password) {
+    public @ResponseBody String addUser(@RequestBody String username, String password) {
 
         insertUserDB(username, password);
+
+        return "test";
     }
     @PostMapping("/removeUser")
-    public @ResponseBody void removeUser(@RequestBody int userID) {
+    public @ResponseBody String removeUser(@RequestBody String userID) {
 
         removeUserDB(userID);
+
+        return "test";
     }
     @PostMapping("/editUser")
-    public @ResponseBody void editUser(@RequestBody String username, String password, int userID) {
+    public @ResponseBody String editUser(@RequestBody String username, String password, int userID) {
 
         updateUserDB(username, password, userID);
+
+        return "test";
     }
 
 
