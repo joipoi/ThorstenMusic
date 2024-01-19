@@ -237,11 +237,11 @@ public class Mapping {
           java.lang.Object[] args;
           args = new java.lang.Object[]{username, password};
 
-          String sql = "INSERT INTO thorsten_music.user (`username`, `password`) VALUES (?, ?, ?, ?);";
+          String sql = "INSERT INTO thorsten_music.user (`username`, `password`) VALUES (?, ?);";
           jdbcTemplate.update(sql, args);
     }
-    private void updateUserDB(String username, String password, int ID) {
-
+    private void updateUserDB(String username, String password, String ID) {
+        //System.out.println(username + ":" + password + ":" + ID);
         java.lang.Object[] args;
         args = new java.lang.Object[]{username, password, ID};
         String sql = "UPDATE thorsten_music.user\n" +
@@ -415,12 +415,15 @@ public class Mapping {
 
         return selectAllUsersDB();
     }
-    //todo this being void must be a problem for some reason
 
     @PostMapping("/addUser")
-    public @ResponseBody String addUser(@RequestBody String username, String password) {
+    public @ResponseBody String addUser(@RequestBody String data) {
 
+        String[] parts = data.split(":");
+        String username = parts[0];
+        String password = parts[1];
         insertUserDB(username, password);
+
 
         return "test";
     }
@@ -432,8 +435,12 @@ public class Mapping {
         return "test";
     }
     @PostMapping("/editUser")
-    public @ResponseBody String editUser(@RequestBody String username, String password, int userID) {
+    public @ResponseBody String editUser(@RequestBody String data) {
 
+        String[] parts = data.split(":");
+        String username = parts[0];
+        String password = parts[1];
+        String userID = parts[2];
         updateUserDB(username, password, userID);
 
         return "test";

@@ -313,23 +313,33 @@ console.log("tabledata =  " + tableData);
 //todo under here the eventlisteners
 function userEditingInit() {
     console.log("in init");
+    var table = document.getElementById("userEditingTable");
     GetAllUsers();
 
 addButton = document.getElementById("addBtn");
 addButton.addEventListener("click", function(){
-    selectedRow.contentEditable = true;
-           // addUser("temp", "temp");
-
+            var lastRow = table.rows[ table.rows.length - 1 ];
+            var username = lastRow.getElementsByTagName("td")[1].innerHTML;
+            var password = lastRow.getElementsByTagName("td")[2].innerHTML
+            addUser(username,password,  function() {
+                GetAllUsers();
+            });
         });
 removeButton = document.getElementById("removeBtn");
 removeButton.addEventListener("click", function(){
-
-           removeUser(selectedRow.getElementsByTagName("td")[0].innerHTML);
+           var userID = selectedRow.getElementsByTagName("td")[0].innerHTML;
+           removeUser(userID, function() {
+           GetAllUsers();
+           });
         });
 editButton = document.getElementById("editBtn");
 editButton.addEventListener("click", function(){
-    selectedRow.contentEditable = true;
-            //editUser("temp","temp", "temp");
+            var username = selectedRow.getElementsByTagName("td")[1].innerHTML;
+            var password = selectedRow.getElementsByTagName("td")[2].innerHTML;
+            var id = selectedRow.getElementsByTagName("td")[0].innerHTML;
+            updateUser(username, password, id, function() {
+                GetAllUsers();
+            });
         });
 
 
@@ -337,13 +347,15 @@ editButton.addEventListener("click", function(){
 }
 function fillUserEditingTable(data) {
 var table = document.getElementById('userEditingTable');
+var tbody = document.getElementById('tbodyID');
+tbody.innerHTML = "";
 
-  for (var i = 0; i < data.length+2; i++) {
-    var row = table.insertRow(i+1);
+  for (var i = 0; i < data.length; i++) {
+    var row = tbody.insertRow();
+    row.contentEditable = true;
     row.addEventListener("click", function(e){
                     setAsSelected(e.target.parentElement);
                 });
-      if(i < data.length) {
 
       var userID = row.insertCell();
       userID.innerText = data[i].userID;
@@ -353,12 +365,14 @@ var table = document.getElementById('userEditingTable');
 
       var password = row.insertCell();
       password.innerText = data[i].password;
-      }else {
-      row.insertCell();
-      row.insertCell();
-      row.insertCell();
-      }
+
+
   }
+  var row = tbody.insertRow();
+  row.contentEditable = true;
+        row.insertCell();
+        row.insertCell();
+        row.insertCell();
 }
 
 
@@ -540,41 +554,47 @@ function GetAllUsers(){
           xhttp.open("POST", "getAllUsers", true);
           xhttp.send();
 }
-function removeUser(id) {
+function removeUser(id, callback) {
   var xhttp;
 
            xhttp = new XMLHttpRequest();
 
            xhttp.onreadystatechange = function() {
              if (this.readyState == 4 && this.status == 200) {
-             var jsonResponse = JSON.parse(xhttp.responseText);
-                     fillResultsTable(jsonResponse);
+              // Call the callback function once the request is complete
+                   callback();
              }
            };
            xhttp.open("POST", "removeUser", true);
            xhttp.send(id);
 }
-function addUser(username, password) {
+function addUser(username, password, callback) {
           var xhttp;
           xhttp = new XMLHttpRequest();
+          var data = username + ":" + password;
 
           xhttp.onreadystatechange = function() {
             if (this.readyState == 4 && this.status == 200) {
+             // Call the callback function once the request is complete
+                               callback();
             }
           };
           xhttp.open("POST", "addUser", true);
-          xhttp.send(username, password);
+          xhttp.send(data);
 }
-function updateUser(username, password, id) {
+function updateUser(username, password, id, callback) {
           var xhttp;
+          var data = username + ":" + password + ":" + id; //why not use array??
           xhttp = new XMLHttpRequest();
 
           xhttp.onreadystatechange = function() {
             if (this.readyState == 4 && this.status == 200) {
+             // Call the callback function once the request is complete
+                               callback();
             }
           };
           xhttp.open("POST", "editUser", true);
-          xhttp.send(username, password, id);
+          xhttp.send(data);
 }
 
 
