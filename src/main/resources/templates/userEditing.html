@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
-<link th:href="@{/stylesheet.css?version=91}" rel="stylesheet"/>
-<script type="text/javascript" th:src="@{/script.js?Num=65}"></script>
+<link th:href="@{/stylesheet.css?version=100}" rel="stylesheet"/>
+<script type="text/javascript" th:src="@{/script.js?Num=70}"></script>
 <head>
     <meta charset="UTF-8">
     <title>Användare SKAPNING</title>
@@ -13,10 +13,10 @@
     <p id="userLoggedIn"></p>
     <a href="login"> <button id="logoutBtn" class="button2">logga ut</button> </a>
 </div>
+<button id="updateBtn">Update Database</button>
 <table id="userEditingTable">
     <thead>
     <tr>
-        <th>UserID</th>
         <th>Username</th>
         <th>Password</th>
     </tr>
@@ -25,9 +25,7 @@
 </table>
 
 
-<button id="addBtn">Add</button>
-<button id="removeBtn">Delete Selected</button>
-<button id="editBtn">Edit Selected</button>
+
 
 
 

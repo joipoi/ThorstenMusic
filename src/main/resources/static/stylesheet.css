@@ -57,6 +57,7 @@ th {
   padding: 20px;
   width: 200px;
   overflow: hidden;
+  height: 20px; /* Set a fixed height for all table cells */
 }
 
 th {

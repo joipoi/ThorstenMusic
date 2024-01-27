@@ -416,7 +416,37 @@ public class Mapping {
         return selectAllUsersDB();
     }
 
-    @PostMapping("/addUser")
+
+    @PostMapping("/updateUser")
+    public @ResponseBody String updateUser(@RequestBody String data) throws IOException {
+        System.out.println(data);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Map<String, String>> userData = objectMapper.readValue(data, new TypeReference<List<Map<String, String>>>() {});
+
+        // Iterate over the list of user data maps
+        for (Map<String, String> user : userData) {
+            String username = user.get("username");
+            String password = user.get("password");
+            String userID = user.get("userID");
+
+            if (userID.isEmpty()) {
+                insertUserDB(username, password);
+                System.out.println("inserted user" + username);
+            } else {
+                if (username.toString().isEmpty() && password.isEmpty()) {
+                    removeUserDB(userID);
+                    System.out.println("removed user" + username);
+                } else {
+                    updateUserDB(username, password, userID);
+                    System.out.println("updated user" + username);
+                }
+            }
+        }
+
+        return "test";
+    }
+   /* @PostMapping("/addUser")
     public @ResponseBody String addUser(@RequestBody String data) {
 
         String[] parts = data.split(":");
@@ -444,7 +474,7 @@ public class Mapping {
         updateUserDB(username, password, userID);
 
         return "test";
-    }
+    } */
 
 
 
@@ -488,7 +518,7 @@ public class Mapping {
     }
 
 }
-
+//todo get rid of the below method and replace it compeletly
     private List<Map<String, Object>> stringToMapList(String HTTPstring) {
 
         List<Map<String, Object>> list = new ArrayList<>();
