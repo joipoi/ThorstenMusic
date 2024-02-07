@@ -7,6 +7,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 @SpringBootApplication
 public class Main {
@@ -16,7 +20,7 @@ public class Main {
 		JFrame jFrame = new JFrame();
 		jFrame.setTitle("Server Status");
 		jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		jFrame.setSize(500, 400);
+		jFrame.setSize(800, 600);
 
 		// Create a panel with default FlowLayout
 		JPanel panel = new JPanel();
@@ -40,10 +44,128 @@ public class Main {
 		});
 		panel.add(button);
 
+		// Add button
+		JButton updateButton = new JButton("UPDATE SERVER");
+		updateButton.setPreferredSize(buttonSize);
+		updateButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+
+                try {
+                    GitChecker();
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+		});
+		panel.add(updateButton);
+
+		JButton checkUpdateButton = new JButton("CHECK FOR UPDATES");
+		checkUpdateButton.setPreferredSize(buttonSize);
+		JLabel upToDateLabel = new JLabel("");
+		checkUpdateButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+
+				try {
+					if(checkForUpdates()) {
+						upToDateLabel.setText("Program is up to date");
+					} else{
+						upToDateLabel.setText("New Version Available");
+					}
+				} catch (IOException ex) {
+					throw new RuntimeException(ex);
+				}
+			}
+		});
+		panel.add(checkUpdateButton);
+		upToDateLabel.setFont(label.getFont().deriveFont(18f));
+		panel.add(upToDateLabel);
+
 		jFrame.getContentPane().add(panel);
 		jFrame.setVisible(true);
 
 		SpringApplication.run(Main.class, args);
 	}
+	private static void GitChecker() throws IOException {
+		System.out.println("in gitchecker");
+		String projectPath = ".";
+
+		ProcessBuilder processBuilder = new ProcessBuilder("git", "fetch");
+		processBuilder.directory(new File(projectPath));
+
+		Process process = processBuilder.start();
+		try {
+			process.waitFor();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		processBuilder = new ProcessBuilder("git", "status", "-uno");
+		processBuilder.directory(new File(projectPath));
+
+		process = processBuilder.start();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+		String line;
+		while ((line = reader.readLine()) != null) {
+			System.out.println(line); // Print the output of git status
+
+			if (line.contains("Your branch is behind")) {
+				System.out.println("There is a new version available. Pulling changes...");
+
+				processBuilder = new ProcessBuilder("git", "pull");
+				processBuilder.directory(new File(projectPath));
+				Process pullProcess = processBuilder.start();
+				try {
+					pullProcess.waitFor();
+					System.out.println("Changes pulled successfully.");
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+
+				break;
+			}
+		}
+
+		reader.close();
+	}
+
+	private static boolean checkForUpdates() throws IOException {
+		String projectPath = ".";
+
+		ProcessBuilder processBuilder = new ProcessBuilder("git", "fetch");
+		processBuilder.directory(new File(projectPath));
+
+		Process process = processBuilder.start();
+		try {
+			process.waitFor();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		processBuilder = new ProcessBuilder("git", "status", "-uno");
+		processBuilder.directory(new File(projectPath));
+
+		process = processBuilder.start();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+		String line;
+		while ((line = reader.readLine()) != null) {
+			System.out.println(line); // Print the output of git status
+
+			if (line.contains("Your branch is behind")) {
+				System.out.println("There is a new version available.");
+				reader.close();
+				return false; // Repository is not up to date
+			}
+		}
+
+		reader.close();
+		System.out.println("Repository is up to date.");
+		return true; // Repository is up to date
+	}
+
+
 
 }
