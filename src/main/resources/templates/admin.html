@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
-<link th:href="@{/stylesheet.css?version=91}" rel="stylesheet"/>
-<script type="text/javascript" th:src="@{/script.js?Num=60}"></script>
+<link th:href="@{/stylesheet.css?version=100}" rel="stylesheet"/>
+<script type="text/javascript" th:src="@{/script.js?Num=70}"></script>
 <head>
     <meta charset="UTF-8">
     <title>Admin</title>
 </head>
-<header> ADMIN -LÄGG TILL LÅTAR </header>
 <body>
-<div id="topDiv">
+<div class="select">
 
     <select name="yearSelect" id="yearSelect" >
         <option value="2020">2020</option>
@@ -20,14 +19,24 @@
     </select>
 
 </div>
-<button id="confirmButton" logoutBtn>Bekräfta ändringar</button>
-<div id="div2">
+<button id="confirmButton" class="button1" logoutBtn>Bekräfta ändringar</button>
+<div id="navDiv">
 <a href="login"> <button id="logoutBtn" class="button2">logga ut</button> </a>
 <a href="votes"> <button id="adminBtn" class="button2">till röster</button> </a>
     <a href="results"> <button id="ToResultsBtn" class="button2">till resultat</button> </a>
     <a href="userEditing"> <button id="ToUserEditingBtn" class="button2">till användare</button> </a>
 </div>
-<div id="tableDiv"></div>
+<table id="adminTable" class="container">
+    <thead>
+    <tr>
+        <th><h1>Låt</h1></th>
+        <th><h1>Artist</h1></th>
+        <th><h1>Kategori</h1></th>
+    </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
 
 <script th:inline="javascript">
       document.onload = initAdminPage();

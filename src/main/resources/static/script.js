@@ -89,7 +89,7 @@ function generateBlankUserTable() {
     window.location.replace("/login");
  }
  tableDiv = document.getElementById("tableDiv");
- adminTable = document.createElement('table');
+ adminTable = document.getElementById("adminTable");
 
  generateBlankAdminTable();
 
@@ -99,17 +99,10 @@ function generateBlankUserTable() {
  }
 
 function generateBlankAdminTable() {
-  adminTable.id = 'adminTable';
-  tableDiv.appendChild(adminTable);
-
-  var row = adminTable.insertRow(0);
-  for (var i = 0; i < 3; i++) {
-    var th = document.createElement('th');
-    row.appendChild(th);
-  }
 
   for (var i = 0; i < 50; i++) {
     var row = adminTable.insertRow(adminTable.length);
+    row.className = "tableRow";
 
     for (var j = 0; j < 3; j++) {
       var cell = row.insertCell(j);
@@ -117,31 +110,14 @@ function generateBlankAdminTable() {
       cell.addEventListener("input", markRowAsModified);
 
     }
-    var updateBtn = document.createElement('button');
-            updateBtn.innerHTML = '<img src="cross.png" width="100" height="50"> ';
-            row.appendChild(updateBtn);
-
-
-            (function(index) {
-                updateBtn.addEventListener("click", function(e) {
-                  clearTableRow(index+1);
-                });
-              })(i);
-
     }
-
-
-    var confirmBtn = document.getElementById("confirmButton");
-   confirmBtn.addEventListener("click", function(e){
-   updateAdminTableInDatabase(modifiedRowsList);
-           for(var i = 0; i < modifiedRowsList.length; i++) {
-            modifiedRowsList[i].style.backgroundColor = "";
-           }
-    });
-
-  adminTable.rows[0].getElementsByTagName("th")[0].innerHTML = "Låt";
-  adminTable.rows[0].getElementsByTagName("th")[1].innerHTML = "Artist";
-  adminTable.rows[0].getElementsByTagName("th")[2].innerHTML = "Kategori";
+  var confirmBtn = document.getElementById("confirmButton");
+  confirmBtn.addEventListener("click", function(e){
+  updateAdminTableInDatabase(modifiedRowsList);
+    for(var i = 0; i < modifiedRowsList.length; i++) {
+        modifiedRowsList[i].style.backgroundColor = "";
+    }
+  });
 
     for (let i = 0; i < 3; i++) {
     adminTable.rows[0].getElementsByTagName("th")[i].addEventListener("click", function () {

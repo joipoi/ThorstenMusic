@@ -11,6 +11,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
 
 @SpringBootApplication
 public class Main {
@@ -45,7 +46,7 @@ public class Main {
 		panel.add(button);
 
 		// Add button
-		JButton updateButton = new JButton("UPDATE SERVER");
+		/*JButton updateButton = new JButton("UPDATE SERVER");
 		updateButton.setPreferredSize(buttonSize);
 		updateButton.addActionListener(new ActionListener() {
 			@Override
@@ -80,14 +81,35 @@ public class Main {
 		});
 		panel.add(checkUpdateButton);
 		upToDateLabel.setFont(label.getFont().deriveFont(18f));
-		panel.add(upToDateLabel);
+		panel.add(upToDateLabel); */
 
 		jFrame.getContentPane().add(panel);
 		jFrame.setVisible(true);
 
 		SpringApplication.run(Main.class, args);
+		openURL();
 	}
-	private static void GitChecker() throws IOException {
+	private static void openURL(){
+		try {
+			String url = "http://localhost:8080/"; // Specify the URL you want to open
+
+			// Check if the Desktop class is supported on the current platform
+			if (Desktop.isDesktopSupported()) {
+				Desktop desktop = Desktop.getDesktop();
+				if (desktop.isSupported(Desktop.Action.BROWSE)) {
+					desktop.browse(new URI(url));
+				} else {
+					System.out.println("Desktop browsing is not supported.");
+				}
+			} else {
+				System.out.println("Desktop is not supported.");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	/*private static void GitChecker() throws IOException {
 		System.out.println("in gitchecker");
 		String projectPath = ".";
 
@@ -164,7 +186,7 @@ public class Main {
 		reader.close();
 		System.out.println("Repository is up to date.");
 		return true; // Repository is up to date
-	}
+	} */
 
 
 
