@@ -1,13 +1,31 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
-<link th:href="@{/stylesheet.css?version=95}" rel="stylesheet"/>
-<script type="text/javascript" th:src="@{/script.js?Num=70}"></script>
+<link th:href="@{/stylesheet.css?version=21}" rel="stylesheet"/>
+<script type="text/javascript" th:src="@{/script.js?version=20}"></script>
 <head>
     <meta charset="UTF-8">
     <title>Resultat</title>
 </head>
-<header> ADMIN - Resultat </header>
 <body>
+<!-- Navigation icon -->
+<div class="nav-icon" onclick="toggleNavMenu()">
+    <i class="fas fa-bars"></i>
+</div>
+
+<!-- Navigation menu -->
+<div class="nav-menu" id="navMenu">
+    <i class="fas fa-times close-icon" onclick="toggleNavMenu()"></i>
+    <a  href="/login"> <button class="button2 logoutBtn">Logga Ut</button> </a>
+    <a  href="/admin"> <button class="button2">Till Admin</button> </a>
+    <a href="/votes">  <button class="button2">Till Röster Lista</button> </a>
+    <a href="/results"> <button class="button2">Till Resultat</button> </a>
+    <a href="/user"> <button class="button2">Till Röstning</button> </a>
+    <a href="/userEditing"> <button class="button2">Till Användare Lista</button> </a>
+</div>
+
+<!-- Font Awesome CDN for the menu icon -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+<div class="tableExtra">
 <select name="yearSelect" id="yearSelect">
     <option value="2020">2020</option>
     <option value="2021">2021</option>
@@ -16,11 +34,21 @@
     <option value="2024">2024</option>
     <option value="2025">2025</option>
 </select>
-
-<div id="tableDiv"></div>
-
-
-
+    <h1 class="pageName">Röstnings Resultat</h1>
+</div>
+<table id="resultTable" class="container">
+    <thead>
+    <tr>
+        <th><h1>Låt</h1></th>
+        <th><h1>Artist</h1></th>
+        <th><h1>Kategori</h1></th>
+        <th><h1>Poäng</h1></th>
+        <th><h1>Resultat</h1></th>
+    </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
 
 <script th:inline="javascript">
       document.onload = initResultsPage();

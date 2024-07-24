@@ -91,7 +91,7 @@ public class Main {
 	}
 	private static void openURL(){
 		try {
-			String url = "http://localhost:8080/"; // Specify the URL you want to open
+			String url = "http://localhost:8080/admin/"; // Specify the URL you want to open
 
 			// Check if the Desktop class is supported on the current platform
 			if (Desktop.isDesktopSupported()) {

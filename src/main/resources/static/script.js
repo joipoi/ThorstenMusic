@@ -4,7 +4,7 @@ var userTable;
 var resultTable;
 var isAdmin;
 var modifiedRowsList = [];
-
+//todo change nav menu depending on if admin or not.
 
 ///
 ///user.html functions
@@ -12,8 +12,7 @@ var modifiedRowsList = [];
 
 //initalizes the user.html page
 function initUserPage() {
-    tableDiv = document.getElementById("tableDiv");
-    userTable = document.createElement('table');
+   userTable = document.getElementById("userTable");
 
     getUsername()
       .then(function(response) {
@@ -41,14 +40,6 @@ function initUserPage() {
 }
 
 function generateBlankUserTable() {
-    userTable.id = 'userTable';
-    tableDiv.appendChild(userTable);
-
-    var row = userTable.insertRow(0);
-    for(var i = 0; i < 4; i++) {
-        var th = document.createElement('th');
-        row.appendChild(th);
-    }
 
     for(var i = 0; i < 50; i++) {
          var row = userTable.insertRow(userTable.length);
@@ -62,11 +53,6 @@ function generateBlankUserTable() {
              }
 
     }
-
-    userTable.rows[0].getElementsByTagName("th")[0].innerHTML = "Låt";
-    userTable.rows[0].getElementsByTagName("th")[1].innerHTML = "Artist";
-    userTable.rows[0].getElementsByTagName("th")[2].innerHTML = "Kategori";
-    userTable.rows[0].getElementsByTagName("th")[3].innerHTML = "Poäng";
 
     for(let i = 0; i < 4; i++) {
         userTable.rows[0].getElementsByTagName("th")[i].addEventListener("click", function(){
@@ -88,7 +74,6 @@ function generateBlankUserTable() {
  if(getCookie("userID") !== "3") {
     window.location.replace("/login");
  }
- tableDiv = document.getElementById("tableDiv");
  adminTable = document.getElementById("adminTable");
 
  generateBlankAdminTable();
@@ -137,7 +122,7 @@ function markRowAsModified(event) {
 
 
   // Change the color of the modified row
-  row.style.backgroundColor = "red";
+  row.style.backgroundColor = "#730f11";
 }
 
 //fills either user or admin table with DB data
@@ -180,7 +165,7 @@ function fillTable(tableData, targetTable) {
 ///votes.html functions
 ///
 function initVotePage() {
-
+console.log("test");
  document.getElementById("yearSelect").addEventListener("change", function(e){
     fetchVoteTable(document.getElementById("userSelect").value, e.target.value);
  });
@@ -194,41 +179,35 @@ function initVotePage() {
 }
 
 function fillVoteTable(data) {
-var tableDiv = document.getElementById("tableDiv");
-   tableDiv.innerHTML = "";
-     var table = document.createElement('table');
-     table.id = 'mediaTable';
-     tableDiv.appendChild(table);
+    let votesTable = document.getElementById("votesTable");
 
-     var tr = document.createElement('tr');
-      //the first tableRow has the headers which include an onclick event which sorts the columns
-     tr.innerHTML = '   <th onclick="sortTable(0)">Låt</th> <th onclick="sortTable(1)">Anändare</th>  <th onclick="sortTable(2)">Röstning</th>';
-     table.appendChild(tr);
-     for(var row = 0; row < data.length; row++) {
-                 var tr = document.createElement('tr');
+    // Clear existing rows in the table
+    while (votesTable.rows.length > 1) {
+        votesTable.deleteRow(1);
+    }
 
-                 var song = document.createElement('td');
-                 song.innerHTML = data[row].name;
-                 tr.appendChild(song);
+    // Add new rows with the updated data
+    for (let row = 0; row < data.length; row++) {
+        // Create a new table row
+        let newRow = votesTable.insertRow(-1);
 
-                 var user = document.createElement('td');
-                 user.innerHTML = data[row].username;
-                 tr.appendChild(user);
+        // Insert cells for the new row and set their innerHTML
+        let nameCell = newRow.insertCell(0);
+        nameCell.innerHTML = data[row].name;
 
-                 var vote = document.createElement('td');
-                 vote.innerHTML = data[row].rating;
-                 tr.appendChild(vote);
+        let usernameCell = newRow.insertCell(1);
+        usernameCell.innerHTML = data[row].username;
 
-                 table.appendChild(tr)
-         }
+        let ratingCell = newRow.insertCell(2);
+        ratingCell.innerHTML = data[row].rating;
+    }
 }
 
 ///
 ///Results.html functions
 ///
 function initResultsPage() {
- tableDiv = document.getElementById("tableDiv");
- resultTable = document.createElement('table');
+  resultTable = document.getElementById("resultTable");
 
  generateBlankResultTable();
 
@@ -239,14 +218,6 @@ function initResultsPage() {
 
 function generateBlankResultTable() {
 
-    tableDiv.appendChild(resultTable);
-
-    var row = resultTable.insertRow(0);
-    for(var i = 0; i < 5; i++) {
-        var th = document.createElement('th');
-        row.appendChild(th);
-    }
-
     for(var i = 0; i < 15; i++) {
          var row = resultTable.insertRow(resultTable.length);
 
@@ -255,12 +226,6 @@ function generateBlankResultTable() {
              }
 
     }
-
-    resultTable.rows[0].getElementsByTagName("th")[0].innerHTML = "Låt";
-    resultTable.rows[0].getElementsByTagName("th")[1].innerHTML = "Artist";
-    resultTable.rows[0].getElementsByTagName("th")[2].innerHTML = "Kategori";
-    resultTable.rows[0].getElementsByTagName("th")[3].innerHTML = "Poäng";
-    resultTable.rows[0].getElementsByTagName("th")[4].innerHTML = "Resultat";
 
     for(let i = 0; i < 5; i++) {
         resultTable.rows[0].getElementsByTagName("th")[i].addEventListener("click", function(){
@@ -295,9 +260,6 @@ function userEditingInit() {
                 modifiedRowsList[i].style.backgroundColor = "";
                 }
                 });
-
-
-
 }
 
 function generateUserEditingTable() {
@@ -706,4 +668,11 @@ function setAsSelected(rowObj) {
     selectedRow = rowObj;
     selectedRow.style.backgroundColor = "#997f7d";
 }
+ function toggleNavMenu() {
+      var navMenu = document.getElementById("navMenu");
+      var navIcon = document.querySelector(".nav-icon");
+
+      navMenu.classList.toggle("active");
+      navIcon.style.display = navMenu.classList.contains("active") ? "none" : "block";
+    }
 
